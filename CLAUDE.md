@@ -46,6 +46,25 @@ Explicitly out (Phase 2/3; do not add without a scope change): biometrics, live 
 
 Touch-first: targets of at least 48×48 px (prefer larger), body text of at least 18 px, titles of at least 24 px, high contrast. At most 5–6 options per screen, no hamburger menus or nested submenus, one path per task. Home and Salir (logout) are always visible. Use plain plant language ("Pedir vacaciones", not "Gestión de solicitudes de ausencia"). Ask for explicit confirmation before any submit, then show an immediate acknowledgment with a folio number. The admin panel is a separate desktop-oriented design.
 
+## Prototype and brand
+
+There are two single-file prototypes, both complete HTML documents that open directly in a browser:
+- `maquetas/kiosko.html` is the touch kiosk. Hash routes: `#login`, `#inicio`, `#vacaciones`, `#recibos`, `#cartas`, `#problema`, `#comunicados`, `#datos`, `#solicitudes`, `#accesos`, `#ayuda`.
+- `maquetas/admin.html` is the desktop admin panel. Hash routes: `#rh-<section>` and `#ti-<section>`; the role switcher shows how permissions are separated.
+
+`.github/workflows/pages.yml` copies both pages plus `maquetas/assets/` to GitHub Pages on every push to `main`, serving the kiosk as `index.html`. The repo is **public**, and `.gitignore` keeps the proposal out.
+
+The kiosk background is the official image `maquetas/assets/fondo-visteon.jpg`, which already contains the logo. On the login it shows at full strength; inside the app it sits as a watermark under the stripes. If it fails to load, the page falls back to the stripes.
+
+The client is Visteon. Follow their Brand Guide 2026, which is confidential: don't commit the PDF.
+- **Type:** Roboto, Regular, Bold and Light only.
+- **Colors:** navy `#00293F`/`#113B5E`, teal `#006283`, white, and warm grey `#D6D8D1`. The brand gradient runs `#001D3A → #00718B`.
+- **Orange `#F5821F`:** only as a highlight (the focused channel, the key figure), never as a general fill.
+- **Icons:** line-based.
+- **Logo and V-tag:** never redraw or recolor them. Use the official file at `maquetas/assets/visteon-logo.svg`, which the page loads if it exists.
+
+The overall look is a Wii-style channel menu (white, glossy rounded tiles, curved dock with the clock). Keep it while applying the brand.
+
 ## Edge cases to handle in design
 
 Employee without a photo; duplicate names; terminated employee still present in the Excel; previous period's Excel uploaded by mistake; Excel format changed silently; a session left open on a shared terminal; network loss; incorrect data flowing into a legal letter. The demo must run without depending on the network.

@@ -20,18 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # maquetas/kiosko.html se escribe sin <html>/<head> (formato de Artifact);
-      # aquí se envuelve en un documento completo para servirlo como index.html.
+      # Las maquetas son documentos completos: se copian tal cual.
+      # El kiosco también se sirve como index.html.
       - name: Armar sitio
         run: |
           mkdir -p _site
-          {
-            printf '<!doctype html>\n<html lang="es">\n<head>\n'
-            printf '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
-            printf '</head>\n<body>\n'
-            cat maquetas/kiosko.html
-            printf '\n</body>\n</html>\n'
-          } > _site/index.html
+          cp maquetas/*.html _site/
+          cp maquetas/kiosko.html _site/index.html
+          if [ -d maquetas/assets ]; then cp -R maquetas/assets _site/; fi
           touch _site/.nojekyll
 
       - uses: actions/configure-pages@v6

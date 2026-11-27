@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kiosko RH Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,700;1,400&display=swap">
+<style>
+/* Marca Visteon (Brand Guide 2026): Roboto; navy #00293F/#113B5E, teal #006283, blancos, gris #D6D8D1.
+   Naranja #F5821F solo como resalte (dato clave, elemento activo). Logo y V-tag no se redibujan.
+   Layout: panel de escritorio para trabajo prolongado. Barra lateral navy con las secciones del rol,
+   barra superior blanca con el cambio de rol (Admin RH / Admin TI) y contenido en tarjetas blancas
+   de esquinas redondas, más densas que en el kiosco pero de la misma familia. */
+:root {
+  --fondo: #F5F6F2;
+  --panel: #FFFFFF;
+  --borde: #DFE1DA;
+  --gris-marca: #D6D8D1;
+  --tinta: #00293F;
+  --suave: #5F6E78;
+  --teal: #006283;
+  --teal-claro: #E1EFF2;
+  --marino: #113B5E;
+  --navy: #00293F;
+  --naranja: #F5821F;
+  --naranja-claro: #FDE3CC;
+  --ok: #2E9D5B;
+  --ok-claro: #DDF1E5;
+  --espera: #FAA519;
+  --espera-claro: #FEEFD2;
+  --alto: #D64541;
+  --alto-claro: #FBE3E1;
+  --fuente: "Roboto", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --lado-w: 248px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; font-family: var(--fuente); font-size: 15px; line-height: 1.45; color: var(--tinta); background: var(--fondo); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 3px solid var(--naranja); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2 { text-wrap: balance; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Estructura ---------- */
+.app { display: grid; grid-template-columns: var(--lado-w) 1fr; min-height: 100%; }
+.lado {
+  background: linear-gradient(180deg, #00293F 0%, #001D3A 100%); color: #fff;
+  padding: 24px 16px; display: flex; flex-direction: column; gap: 4px;
+  position: sticky; top: 0; height: 100vh;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+}
+.marca { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px; font-weight: 700; font-size: 18px; line-height: 1.15; }
+.marca small { display: block; font-weight: 400; font-size: 13px; opacity: .7; }
+.sello { width: 42px; height: 42px; border-radius: 13px; background: #fff; color: var(--marino); display: grid; place-content: center; font-weight: 700; flex: none; }
+.logo-oficial { height: 28px; width: auto; margin: 0 8px 18px; align-self: flex-start; }
+.nav-titulo { font-size: 12px; color: rgba(255,255,255,.55); padding: 14px 12px 6px; letter-spacing: .04em; }
+.nav-btn {
+  display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 14px;
+  color: rgba(255,255,255,.82); font-weight: 400; text-align: left; width: 100%; position: relative;
+}
+.nav-btn svg { width: 22px; height: 22px; flex: none; }
+.nav-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-btn.on { background: #fff; color: var(--navy); font-weight: 700; }
+.nav-btn .cuenta { margin-left: auto; font-size: 12px; font-weight: 700; background: var(--naranja); color: var(--navy); border-radius: 999px; padding: 1px 8px; }
+.nav-btn.on .cuenta { background: var(--naranja-claro); }
+.lado-pie { margin-top: auto; padding: 12px; font-size: 13px; color: rgba(255,255,255,.6); display: grid; gap: 8px; }
+.lado-pie a { color: #fff; font-weight: 700; }
+
+.principal { min-width: 0; display: grid; grid-template-rows: auto 1fr; }
+.arriba {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  padding: 20px 32px; background: var(--panel); border-bottom: 1px solid var(--borde);
+  padding-right: max(32px, env(safe-area-inset-right, 0px));
+  position: sticky; top: 0; z-index: 5;
+}
+.arriba h1 { font-size: 28px; font-weight: 300; line-height: 1.15; }
+.arriba h1 small { display: block; font-size: 14px; color: var(--suave); margin-top: 2px; }
+.arriba-der { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.rol { display: inline-flex; background: var(--fondo); border: 1px solid var(--borde); border-radius: 999px; padding: 4px; }
+.rol button { padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 14px; color: var(--suave); }
+.rol button.on { background: var(--navy); color: #fff; }
+.yo { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.25; }
+.yo b { display: block; }
+.yo span { color: var(--suave); font-size: 13px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--teal-claro); color: var(--teal); display: grid; place-content: center; font-weight: 700; flex: none; }
+main { padding: 28px 32px 48px; padding-right: max(32px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; align-content: start; min-width: 0; }
+
+/* ---------- Piezas ---------- */
+.tarjeta { background: var(--panel); border: 1px solid var(--borde); border-radius: 22px; padding: 22px 24px; min-width: 0; }
+.tarjeta > h2, .cab h2 { font-size: 18px; font-weight: 700; }
+.cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.cab p { color: var(--suave); font-size: 14px; }
+.rejilla { display: grid; gap: 22px; }
+.r-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.r-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.r-3-2 { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+.r-2-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+.dato { display: grid; gap: 4px; align-content: start; }
+.dato .etq { font-size: 14px; color: var(--suave); }
+.dato .valor { font-size: 40px; font-weight: 300; line-height: 1.05; }
+.dato .nota { font-size: 13px; color: var(--suave); }
+.dato .nota.alerta { color: #A3621A; font-weight: 700; }
+.dato.clave .valor { color: var(--naranja); font-weight: 400; }
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px;
+  border-radius: 12px; font-weight: 700; font-size: 14px; background: var(--teal); color: #fff; white-space: nowrap;
+}
+.boton:hover { background: #00506B; }
+.boton svg { width: 18px; height: 18px; }
+.boton.claro { background: var(--panel); color: var(--tinta); border: 1px solid var(--borde); }
+.boton.claro:hover { background: var(--fondo); }
+.boton.peligro { background: var(--panel); color: var(--alto); border: 1px solid #EBC3C0; }
+.boton.peligro:hover { background: var(--alto-claro); }
+.boton.mini { min-height: 32px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+.boton:disabled { opacity: .45; cursor: default; }
+.estado { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.estado::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.estado.ok { background: var(--ok-claro); color: #1E7344; }
+.estado.pend { background: var(--espera-claro); color: #8A5A07; }
+.estado.no { background: var(--alto-claro); color: #A8322E; }
+.estado.info { background: var(--teal-claro); color: var(--teal); }
+.estado.gris { background: #EDEEEA; color: var(--suave); }
+.aviso-linea { display: flex; gap: 10px; align-items: flex-start; background: var(--espera-claro); color: #6E4805; border-radius: 12px; padding: 10px 12px; font-size: 13px; }
+.aviso-linea svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.aviso-linea.error { background: var(--alto-claro); color: #8E2B27; }
+.aviso-linea.bien { background: var(--ok-claro); color: #1E5F3A; }
+.buscar { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--borde); border-radius: 12px; padding: 0 12px; min-height: 40px; min-width: min(320px, 100%); }
+.buscar svg { width: 18px; height: 18px; color: var(--suave); flex: none; }
+.buscar input { border: 0; outline: 0; background: none; flex: 1; min-width: 0; padding: 8px 0; }
+.filtros { display: flex; gap: 8px; flex-wrap: wrap; }
+.filtro { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--borde); background: var(--panel); font-size: 13px; font-weight: 700; color: var(--suave); }
+.filtro.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.filtro .n { opacity: .7; margin-left: 4px; }
+.campo { display: grid; gap: 6px; }
+.campo label { font-size: 13px; font-weight: 700; }
+.campo input, .campo select, .campo textarea {
+  border: 1px solid var(--borde); border-radius: 12px; padding: 10px 12px; background: var(--panel); width: 100%;
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus { outline: 0; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-claro); }
+.campo textarea { min-height: 96px; resize: vertical; }
+.campo .ayuda { font-size: 12px; color: var(--suave); }
+.form { display: grid; gap: 14px; }
+.form-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* tablas */
+.tabla-caja { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-weight: 700; font-size: 12px; color: var(--suave); padding: 10px 12px; border-bottom: 1px solid var(--borde); white-space: nowrap; letter-spacing: .02em; }
+td { padding: 12px; border-bottom: 1px solid #EEEFEA; vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+tbody tr.clic { cursor: pointer; }
+tbody tr.clic:hover td { background: #F8F9F6; }
+tbody tr.sel td { background: var(--teal-claro); }
+td .sub { display: block; font-size: 12px; color: var(--suave); }
+td.der, th.der { text-align: right; }
+.acciones { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.oculto-rol { color: var(--suave); font-style: italic; }
+
+/* gráficas */
+.grafica { position: relative; }
+.grafica svg { width: 100%; height: auto; display: block; overflow: visible; }
+.grafica text { font-family: var(--fuente); fill: var(--suave); font-size: 11px; }
+.tip {
+  position: absolute; pointer-events: none; background: var(--navy); color: #fff; border-radius: 10px; padding: 8px 10px;
+  font-size: 12px; line-height: 1.35; transform: translate(-50%, calc(-100% - 10px)); white-space: nowrap; opacity: 0; transition: opacity .1s; z-index: 3;
+}
+.tip b { font-size: 14px; }
+.tip.on { opacity: 1; }
+.barras-h { display: grid; gap: 10px; }
+.bh { display: grid; grid-template-columns: 120px 1fr 32px; align-items: center; gap: 10px; font-size: 14px; }
+.bh .pista { height: 14px; border-radius: 0 4px 4px 0; background: transparent; }
+.bh .barra { height: 100%; border-radius: 0 4px 4px 0; background: var(--teal); }
+.bh.top .barra { background: var(--naranja); }
+.bh .v { text-align: right; font-weight: 700; }
+.leyenda-g { display: flex; gap: 16px; font-size: 12px; color: var(--suave); flex-wrap: wrap; }
+.leyenda-g i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.medidor { height: 12px; border-radius: 999px; background: #ECEEE8; overflow: hidden; }
+.medidor span { display: block; height: 100%; background: var(--teal); border-radius: 999px; }
+
+/* listas y detalle */
+.lista { display: grid; gap: 2px; }
+.item { display: flex; align-items: center; gap: 14px; padding: 12px 10px; border-radius: 14px; text-align: left; width: 100%; }
+.item:hover { background: #F8F9F6; }
+.item.on { background: var(--teal-claro); }
+.item .txt { flex: 1; min-width: 0; }
+.item .txt b { display: block; font-size: 14px; }
+.item .txt span { font-size: 13px; color: var(--suave); }
+.item .ic { width: 36px; height: 36px; border-radius: 11px; background: var(--teal-claro); color: var(--teal); display: grid; place-content: center; flex: none; }
+.item .ic svg { width: 20px; height: 20px; }
+.detalle { display: grid; gap: 16px; align-content: start; }
+.renglones { display: grid; border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; }
+.renglon { display: flex; justify-content: space-between; gap: 16px; padding: 10px 14px; font-size: 14px; border-bottom: 1px solid #EEEFEA; }
+.renglon:last-child { border-bottom: 0; }
+.renglon span { color: var(--suave); }
+.renglon b { text-align: right; }
+.hilo { display: grid; gap: 10px; }
+.burbuja { max-width: 85%; border-radius: 16px; padding: 10px 14px; font-size: 14px; background: var(--fondo); justify-self: start; }
+.burbuja.rh { justify-self: end; background: var(--teal-claro); }
+.burbuja .de { display: block; font-size: 12px; font-weight: 700; color: var(--suave); margin-bottom: 2px; }
+.vacio { text-align: center; color: var(--suave); padding: 40px 16px; display: grid; gap: 6px; justify-items: center; }
+.vacio svg { width: 40px; height: 40px; color: var(--gris-marca); }
+
+/* interruptor */
+.switch { position: relative; width: 46px; height: 26px; border-radius: 999px; background: #D9DCD4; flex: none; transition: background .15s; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,41,63,.25); transition: transform .15s; }
+.switch[aria-checked="true"] { background: var(--teal); }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+
+/* vista previa de kiosco */
+.kiosco-prev { background: repeating-linear-gradient(0deg, #F7F8F5 0 4px, #ECEEE8 4px 6px); border-radius: 18px; padding: 18px; display: grid; gap: 12px; }
+.kiosco-prev .chip { font-size: 12px; color: var(--suave); }
+.tarjeta-k { border-radius: 22px; overflow: hidden; background: #fff; border: 2px solid var(--gris-marca); max-width: 340px; }
+.tarjeta-k .arte { aspect-ratio: 5 / 3; display: grid; place-content: center; color: #fff; font-weight: 700; font-size: 22px; padding: 16px; text-align: center; }
+.tarjeta-k .pie { padding: 12px 16px 16px; }
+.tarjeta-k .pie b { display: block; font-size: 18px; }
+.tarjeta-k .pie span { font-size: 14px; color: var(--suave); }
+.campo-k { background: #fff; border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; border: 2px solid var(--gris-marca); }
+.campo-k span { font-size: 13px; color: var(--suave); }
+.campo-k b { font-size: 17px; }
+.campo-k.nuevo { border-color: var(--naranja); }
+.muestras { display: flex; gap: 8px; }
+.muestra { width: 34px; height: 34px; border-radius: 10px; border: 3px solid transparent; }
+.muestra.on { border-color: var(--naranja); }
+
+/* importación */
+.pasos-imp { display: grid; gap: 10px; }
+.paso-imp { display: flex; gap: 12px; align-items: center; font-size: 14px; color: var(--suave); }
+.paso-imp i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--borde); display: grid; place-content: center; font-style: normal; font-size: 12px; font-weight: 700; flex: none; }
+.paso-imp.hecho { color: var(--tinta); }
+.paso-imp.hecho i { background: var(--ok); border-color: var(--ok); color: #fff; }
+.paso-imp.activo { color: var(--tinta); font-weight: 700; }
+.paso-imp.activo i { border-color: var(--teal); color: var(--teal); animation: pulso 1s infinite; }
+@keyframes pulso { 50% { box-shadow: 0 0 0 5px var(--teal-claro); } }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0;
+  background: var(--navy); color: #fff; border-radius: 14px; padding: 12px 20px; font-weight: 700; font-size: 14px;
+  transition: opacity .2s, transform .2s; pointer-events: none; z-index: 20; max-width: calc(100vw - 32px);
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 1180px) {
+  .r-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .r-3-2, .r-2-3, .r-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 820px) {
+  .app { grid-template-columns: 1fr; }
+  .lado { position: static; height: auto; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; align-items: center; padding: 12px 16px; gap: 6px; }
+  .marca { padding: 0 8px 0 0; flex: none; }
+  .marca span:last-child, .nav-titulo, .lado-pie, .logo-oficial { display: none; }
+  .nav-btn { width: auto; flex: none; white-space: nowrap; padding: 9px 12px; }
+  .arriba { padding: 16px; position: static; }
+  main { padding: 18px 16px 40px; }
+  .tarjeta { padding: 18px 16px; }
+  .tabla-caja { margin: 0 -16px; padding: 0 16px; }
+  .form-2 { grid-template-columns: 1fr; }
+  .bh { grid-template-columns: 96px 1fr 28px; }
+}
+@media (max-width: 520px) { .r-4 { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-casa" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7M6.5 9.5V19a1 1 0 0 0 1 1H10v-5h4v5h2.5a1 1 0 0 0 1-1V9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-6l-4.5 3.5V17A3 3 0 0 1 4 14z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-megafono" viewBox="0 0 24 24"><path d="M4 10v4a1 1 0 0 0 1 1h2l8 4V5L7 9H5a1 1 0 0 0-1 1zM7 15l1.5 5M18.5 9.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gente" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 19.5c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5M16 5a3 3 0 0 1 0 6M18 14c1.7.6 2.8 2.4 3 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-llave" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m11 12 8-8M16 7l2.5 2.5M14 9l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-campos" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-sync" viewBox="0 0 24 24"><path d="M19 8a7.5 7.5 0 0 0-13.5-1M5 16a7.5 7.5 0 0 0 13.5 1M5.5 3v4h4M18.5 21v-4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lista" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-engrane" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-lupa" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15 15 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></symbol>
+    <symbol id="i-palomita" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-kiosco" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 15v5M8 20.5h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <nav class="lado" aria-label="Secciones">
+    <div class="marca"><span class="sello">RH</span><span>Kiosko RH<small>Visteon, administración</small></span></div>
+    <!-- Logo oficial en versión blanca: maquetas/assets/visteon-logo.svg (no se redibuja) -->
+    <img class="logo-oficial" src="assets/visteon-logo.svg" alt="Visteon" onerror="this.remove()">
+    <div id="nav"></div>
+    <div class="lado-pie">
+      <span>Maqueta con datos de ejemplo.</span>
+      <a href="kiosko.html">Ver el kiosco</a>
+    </div>
+  </nav>
+
+  <div class="principal">
+    <header class="arriba">
+      <h1 id="titulo">Inicio</h1>
+      <div class="arriba-der">
+        <div class="rol" role="group" aria-label="Ver como">
+          <button data-rol="rh" class="on">Admin RH</button>
+          <button data-rol="ti">Admin TI</button>
+        </div>
+        <div class="yo"><span class="avatar" id="yo-ini">LM</span><span><b id="yo-nom">Laura Méndez Ortiz</b><span id="yo-rol">Recursos Humanos</span></span></div>
+      </div>
+    </header>
+    <main id="main"></main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+(() => {
+  // ================= Datos de ejemplo =================
+  const EMP = {
+    "004218": { n: "María Guadalupe Hernández Ruiz", p: "Operadora de ensamble", a: "Línea 3", t: "Matutino", ing: "14 mar 2023", sd: 420, saldo: 12 },
+    "003951": { n: "José Luis Ramírez Torres", p: "Operador de inyección", a: "Línea 1", t: "Vespertino", ing: "2 ago 2021", sd: 445, saldo: 9 },
+    "005102": { n: "Ana Karen Morales Díaz", p: "Inspectora de calidad", a: "Calidad", t: "Matutino", ing: "20 ene 2024", sd: 460, saldo: 14 },
+    "002877": { n: "Juan Carlos Vega Flores", p: "Técnico de mantenimiento", a: "Mantenimiento", t: "Nocturno", ing: "11 may 2019", sd: 610, saldo: 20 },
+    "004630": { n: "Rosa Elena Castillo Peña", p: "Operadora de ensamble", a: "Línea 3", t: "Matutino", ing: "3 oct 2022", sd: 420, saldo: 6 },
+    "005377": { n: "Luis Fernando Ortega Silva", p: "Almacenista", a: "Almacén", t: "Matutino", ing: "15 jul 2025", sd: 400, saldo: 12 },
+    "003310": { n: "Patricia Navarro Gómez", p: "Supervisora de línea", a: "Línea 2", t: "Vespertino", ing: "28 feb 2020", sd: 720, saldo: 18 },
+    "004899": { n: "Miguel Ángel Reyes Cruz", p: "Operador de ensamble", a: "Línea 3", t: "Matutino", ing: "9 jun 2023", sd: 420, saldo: 16 },
+  };
+  const VACS = [
+    { id: "VAC-1241", no: "004218", del: "lun 14 dic", al: "sáb 19 dic", dias: 6, env: "25 nov", e: "pend", choque: "Rosa Elena Castillo, de Línea 3, también pidió del 15 al 17 de diciembre." },
+    { id: "VAC-1239", no: "004630", del: "mar 15 dic", al: "jue 17 dic", dias: 3, env: "24 nov", e: "pend", choque: "María Guadalupe Hernández, de Línea 3, pidió del 14 al 19 de diciembre." },
+    { id: "VAC-1236", no: "002877", del: "lun 4 ene", al: "sáb 9 ene", dias: 6, env: "23 nov", e: "pend" },
+    { id: "VAC-1233", no: "005102", del: "mar 22 dic", al: "jue 24 dic", dias: 3, env: "22 nov", e: "pend" },
+    { id: "VAC-1230", no: "003951", del: "mié 2 dic", al: "mié 2 dic", dias: 1, env: "21 nov", e: "pend" },
+    { id: "VAC-1218", no: "004899", del: "mar 1 dic", al: "sáb 5 dic", dias: 5, env: "18 nov", e: "ok", quien: "Laura Méndez" },
+    { id: "VAC-1205", no: "005377", del: "lun 28 dic", al: "mié 30 dic", dias: 3, env: "16 nov", e: "no", quien: "Laura Méndez", motivo: "Esos días hay inventario anual." },
+  ];
+  const TICKETS = [
+    { id: "TKT-0880", no: "005102", tema: "Vacaciones", t: "Mi saldo de días está mal", cuando: "", fecha: "25 nov", dias: 1, e: "nuevo", hilo: [] },
+    { id: "TKT-0879", no: "004899", tema: "Mi pago", t: "No entiendo un descuento", cuando: "Esta quincena", fecha: "24 nov", dias: 2, e: "nuevo", hilo: [] },
+    { id: "TKT-0876", no: "005377", tema: "Uniforme y equipo", t: "Necesito zapatos de seguridad", cuando: "", fecha: "21 nov", dias: 5, e: "nuevo", hilo: [] },
+    { id: "TKT-0874", no: "003951", tema: "Mi pago", t: "Me falta tiempo extra", cuando: "Esta quincena", fecha: "20 nov", dias: 6, e: "proceso", hilo: [{ rh: true, de: "Daniela Fuentes", txt: "Lo estoy revisando con tu supervisor. Te aviso el viernes." }] },
+    { id: "TKT-0871", no: "004218", tema: "Mis checadas", t: "Me falta una checada", cuando: "La quincena pasada", fecha: "13 nov", dias: 13, e: "proceso", hilo: [{ rh: true, de: "Laura Méndez", txt: "Ya lo revisé con tu supervisor. La checada se corrige y el pago sale en la quincena 22." }] },
+    { id: "TKT-0862", no: "003310", tema: "Mis datos", t: "Cambié de domicilio", cuando: "", fecha: "10 nov", dias: 16, e: "cerrado", hilo: [{ rh: true, de: "Laura Méndez", txt: "Listo, ya quedó tu nuevo domicilio." }] },
+  ];
+  const CARTAS = [
+    { id: "CAR-0412", no: "004630", tipo: "Carta con sueldo", para: "Banco", fecha: "25 nov", e: "pend" },
+    { id: "CAR-0409", no: "002877", tipo: "Carta con sueldo", para: "Crédito Infonavit", fecha: "24 nov", e: "pend" },
+    { id: "CAR-0398", no: "003310", tipo: "Carta con sueldo", para: "Renta", fecha: "19 nov", e: "ok" },
+  ];
+  const COLORES = { teal: "#006283", marino: "#113B5E", naranja: "#F5821F", ambar: "#FAA519" };
+  const COMUNICADOS = [
+    { id: 1, t: "Posada navideña", f: "Viernes 18 de diciembre", desde: "2026-11-23", hasta: "2026-12-18", color: "teal", lecturas: 412 },
+    { id: 2, t: "Fecha de pago del aguinaldo", f: "Se deposita el 18 de diciembre", desde: "2026-11-24", hasta: "2026-12-18", color: "marino", lecturas: 538 },
+    { id: 3, t: "Vacuna contra la influenza", f: "Del 1 al 5 de diciembre", desde: "2026-11-25", hasta: "2026-12-05", color: "teal", lecturas: 97 },
+    { id: 4, t: "Nuevo menú del comedor", f: "Desde el lunes 30 de noviembre", desde: "2026-11-30", hasta: "2026-12-31", color: "ambar", lecturas: 0 },
+    { id: 5, t: "Simulacro de evacuación", f: "Jueves 12 de noviembre", desde: "2026-11-05", hasta: "2026-11-12", color: "naranja", lecturas: 864 },
+  ];
+  const HOY = "2026-11-25";
+  // sesiones de kiosco, 12 al 25 de noviembre (domingo la planta no abre)
+  const SESIONES = [["jue", 12, 138], ["vie", 13, 151], ["sáb", 14, 96], ["dom", 15, 0], ["lun", 16, 144], ["mar", 17, 139], ["mié", 18, 152], ["jue", 19, 147], ["vie", 20, 158], ["sáb", 21, 102], ["dom", 22, 0], ["lun", 23, 149], ["mar", 24, 155], ["mié", 25, 148]];
+  const POR_TEMA = [["Mi pago", 14], ["Mis checadas", 11], ["Uniforme y equipo", 7], ["Vacaciones", 5], ["Mis datos", 3], ["Otra cosa", 2]];
+  const USUARIOS = [
+    { n: "Laura Méndez Ortiz", u: "lmendez", rol: "Admin RH", ult: "Hoy, 9:12", on: true },
+    { n: "Daniela Fuentes Lara", u: "dfuentes", rol: "Admin RH", ult: "Ayer, 17:40", on: true },
+    { n: "Héctor Salinas Ruiz", u: "hsalinas", rol: "Admin TI", ult: "Hoy, 8:40", on: true },
+    { n: "Ricardo Alba Pérez", u: "ralba", rol: "Admin RH", ult: "3 oct", on: false },
+  ];
+  const CAMPOS = [
+    { k: "telefono", l: "Teléfono celular", tipo: "Texto", on: true, ob: false, ej: "442 123 4567" },
+    { k: "contacto", l: "Contacto de emergencia", tipo: "Texto", on: true, ob: true, ej: "Jorge Hernández, 442 765 4321" },
+    { k: "talla", l: "Talla de uniforme", tipo: "Lista: CH, M, G, XG", on: true, ob: false, ej: "M" },
+    { k: "cp", l: "Código postal", tipo: "Número de 5 dígitos", on: false, ob: false, ej: "76120" },
+    { k: "sangre", l: "Tipo de sangre", tipo: "Lista: A+, A−, B+, O+…", on: false, ob: false, ej: "O+" },
+  ];
+  const IMPORTS = [
+    { f: "plantilla_2026-11-25.xlsx", fuente: "Excel de plantilla", hora: "Hoy, 6:00", e: "ok", msg: "1,248 registros. 3 altas y 1 baja." },
+    { f: "checadas_semana47.csv", fuente: "Checadores", hora: "Lun 23, 6:00", e: "pend", msg: "2 empleados dados de baja siguen en el archivo. Se ignoraron." },
+    { f: "nomina_q21.xlsx", fuente: "Exportación de A3", hora: "13 nov, 6:00", e: "ok", msg: "1,241 recibos de la quincena 21." },
+    { f: "nomina_q21_v1.xlsx", fuente: "Exportación de A3", hora: "12 nov, 18:22", e: "no", msg: 'Faltó la columna "NSS". No se publicó nada.' },
+  ];
+  const BITACORA = [
+    ["Hoy 09:14", "Laura Méndez", "Aprobó vacaciones", "VAC-1218, Miguel Ángel Reyes", "accion"],
+    ["Hoy 09:02", "004218", "Entró al kiosco", "Kiosco del comedor", "acceso"],
+    ["Hoy 08:57", "004218", "Imprimió un recibo", "Quincena 21", "documento"],
+    ["Hoy 08:40", "Héctor Salinas", "Cambió un campo", 'Activó "Talla de uniforme"', "config"],
+    ["Hoy 06:00", "Sistema", "Importó la plantilla", "1,248 registros", "datos"],
+    ["Hoy 02:00", "Sistema", "Hizo el respaldo", "1.1 GB comprimido", "datos"],
+    ["Ayer 17:45", "Laura Méndez", "Vio datos de un empleado", "003951, José Luis Ramírez", "sensible"],
+    ["Ayer 16:20", "003310", "PIN incorrecto 3 veces", "Kiosco de la entrada. Bloqueado 15 minutos", "alerta"],
+    ["Ayer 12:31", "Daniela Fuentes", "Respondió un reporte", "TKT-0874", "accion"],
+  ];
+  const TIPOS_BIT = { accion: ["Acción de RH", "info"], acceso: ["Acceso", "gris"], documento: ["Documento", "gris"], config: ["Configuración", "info"], datos: ["Datos", "ok"], sensible: ["Dato sensible", "pend"], alerta: ["Alerta", "no"] };
+
+  // ================= Estado =================
+  const st = {
+    rol: "rh", ruta: "inicio", vacFiltro: "pend", vacSel: "VAC-1241", rechazo: false,
+    tkFiltro: "abiertos", tkSel: "TKT-0880", busca: "", bitFiltro: "todo",
+    comNuevo: { t: "", f: "", color: "teal", desde: "2026-11-26", hasta: "2026-12-11" },
+    imp: null, params: { sesion: 2, pin: 3, anticip: 3, retencion: 5 },
+  };
+  const NAV = {
+    rh: [["inicio", "Inicio", "i-casa"], ["vacaciones", "Vacaciones", "i-sol"], ["reportes", "Reportes", "i-chat"], ["cartas", "Cartas por validar", "i-doc"], ["comunicados", "Comunicados", "i-megafono"], ["empleados", "Empleados", "i-gente"]],
+    ti: [["inicio", "Inicio", "i-casa"], ["usuarios", "Usuarios y roles", "i-llave"], ["empleados", "Empleados", "i-gente"], ["campos", "Campos", "i-campos"], ["integraciones", "Importar datos", "i-sync"], ["bitacora", "Bitácora", "i-lista"], ["parametros", "Parámetros", "i-engrane"]],
+  };
+  const TITULOS = {
+    "rh/inicio": ["Buenos días, Laura", "Lo pendiente de hoy, miércoles 25 de noviembre"],
+    "ti/inicio": ["Buenos días, Héctor", "Estado del sistema, miércoles 25 de noviembre"],
+    vacaciones: ["Vacaciones", "Revisa cada solicitud antes de aprobarla"],
+    reportes: ["Reportes", "Lo que los empleados mandaron desde el kiosco"],
+    cartas: ["Cartas por validar", "Las cartas con sueldo pasan por RH antes de entregarse"],
+    comunicados: ["Comunicados", "Lo que se ve en los kioscos"],
+    empleados: ["Empleados", "Vienen de la plantilla. Se actualizan con cada importación"],
+    usuarios: ["Usuarios y roles", "Quién entra a este panel y qué puede hacer"],
+    campos: ["Campos de Mis datos", "Activa campos sin tocar código"],
+    integraciones: ["Importar datos", "Archivos de plantilla, nómina y checadas"],
+    bitacora: ["Bitácora", "Registro de accesos y acciones sensibles"],
+    parametros: ["Parámetros", "Reglas del kiosco y del sistema"],
+  };
+
+  // ================= Utilidades =================
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const ico = id => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
+  const dinero = n => n.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
+  const iniciales = n => n.split(" ").slice(0, 2).map(x => x[0]).join("");
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let toastT;
+  function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600); }
+  function bitacora(quien, accion, det, tipo) { BITACORA.unshift(["Hoy " + new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false }), quien, accion, det, tipo]); }
+  const yo = () => st.rol === "rh" ? "Laura Méndez" : "Héctor Salinas";
+  const pendVac = () => VACS.filter(v => v.e === "pend").length;
+  const abiertos = () => TICKETS.filter(t => t.e !== "cerrado").length;
+  const pendCartas = () => CARTAS.filter(c => c.e === "pend").length;
+  const estadoVac = { pend: ["Por revisar", "pend"], ok: ["Aprobada", "ok"], no: ["Rechazada", "no"] };
+  const estadoTk = { nuevo: ["Nuevo", "pend"], proceso: ["En proceso", "info"], cerrado: ["Resuelto", "ok"] };
+  const chip = ([txt, cls]) => `<span class="estado ${cls}">${txt}</span>`;
+  function vigencia(c) { if (c.hasta < HOY) return ["Terminó", "gris"]; if (c.desde > HOY) return ["Programado", "info"]; return ["En kioscos", "ok"]; }
+
+  // ================= Navegación =================
+  function pintarNav() {
+    const cuentas = { vacaciones: pendVac(), reportes: TICKETS.filter(t => t.e === "nuevo").length, cartas: pendCartas() };
+    $("#nav").innerHTML = `<div class="nav-titulo">${st.rol === "rh" ? "Recursos Humanos" : "Tecnología"}</div>` +
+      NAV[st.rol].map(([r, n, i]) => `<button class="nav-btn ${st.ruta === r ? "on" : ""}" data-ruta="${r}">${ico(i)}${n}${cuentas[r] ? `<span class="cuenta num">${cuentas[r]}</span>` : ""}</button>`).join("");
+    $$(".rol button").forEach(b => b.classList.toggle("on", b.dataset.rol === st.rol));
+    $("#yo-nom").textContent = st.rol === "rh" ? "Laura Méndez Ortiz" : "Héctor Salinas Ruiz";
+    $("#yo-rol").textContent = st.rol === "rh" ? "Recursos Humanos" : "Tecnología";
+    $("#yo-ini").textContent = st.rol === "rh" ? "LM" : "HS";
+  }
+  function ir(ruta, rol = st.rol) {
+    if (!NAV[rol].some(([r]) => r === ruta)) ruta = "inicio";
+    st.rol = rol; st.ruta = ruta;
+    if (location.hash !== `#${rol}-${ruta}`) history.replaceState(null, "", `#${rol}-${ruta}`);
+    pintar(); window.scrollTo(0, 0);
+  }
+  function pintar() {
+    pintarNav();
+    const [t, s] = TITULOS[`${st.rol}/${st.ruta}`] || TITULOS[st.ruta];
+    $("#titulo").innerHTML = `${t}<small>${s}</small>`;
+    VISTAS[`${st.rol}/${st.ruta}`]?.() ?? VISTAS[st.ruta]();
+  }
+  document.addEventListener("click", e => {
+    const n = e.target.closest("[data-ruta]"); if (n) return ir(n.dataset.ruta);
+    const r = e.target.closest("[data-rol]"); if (r) return ir(st.ruta, r.dataset.rol);
+  });
+
+  // ================= Gráfica de barras (SVG, con tooltip) =================
+  function barras(datos, alto = 220) {
+    const W = 680, H = alto, iz = 34, ab = 34, ar = 12, de = 6;
+    const max = 200, paso = 50;
+    const anchoZona = (W - iz - de) / datos.length, bw = Math.min(26, anchoZona * .56);
+    const y = v => ar + (H - ar - ab) * (1 - v / max);
+    let g = "";
+    for (let v = 0; v <= max; v += paso) g += `<line x1="${iz}" x2="${W - de}" y1="${y(v)}" y2="${y(v)}" stroke="#E7E9E3" stroke-width="1"/><text x="${iz - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+    datos.forEach(([dia, n, v], i) => {
+      const cx = iz + anchoZona * (i + .5), hoy = i === datos.length - 1;
+      if (v > 0) {
+        const top = y(v), x = cx - bw / 2, base = y(0), r = 4;
+        g += `<path d="M${x} ${base}V${top + r}a${r} ${r} 0 0 1 ${r}-${r}h${bw - 2 * r}a${r} ${r} 0 0 1 ${r} ${r}V${base}z" fill="${hoy ? "#F5821F" : "#006283"}"/>`;
+      } else g += `<text x="${cx}" y="${y(0) - 6}" text-anchor="middle" font-size="10">cerrado</text>`;
+      g += `<text x="${cx}" y="${H - ab + 16}" text-anchor="middle" ${hoy ? 'font-weight="700" style="fill:#00293F"' : ""}>${n}</text>`;
+      g += `<text x="${cx}" y="${H - ab + 29}" text-anchor="middle" font-size="10">${dia}</text>`;
+      g += `<rect class="hit" x="${cx - anchoZona / 2}" y="${ar}" width="${anchoZona}" height="${H - ar - ab}" fill="transparent" data-tip="<b>${v || "Cerrado"}</b>${v ? " sesiones" : ""}<br>${dia} ${n} de noviembre${hoy ? ", hoy" : ""}" data-x="${cx / W}" data-y="${(v ? y(v) : y(0)) / H}"/>`;
+    });
+    return `<div class="grafica"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sesiones en los kioscos por día, del 12 al 25 de noviembre. Hoy: ${datos.at(-1)[2]}.">${g}</svg></div>`;
+  }
+  document.addEventListener("mousemove", e => {
+    const h = e.target.closest?.(".hit"), tip = $("#tip");
+    if (!h) { tip.classList.remove("on"); return; }
+    const g = h.closest(".grafica"), r = g.getBoundingClientRect();
+    tip.innerHTML = h.dataset.tip;
+    tip.style.left = (r.left + window.scrollX + r.width * +h.dataset.x) + "px";
+    tip.style.top = (r.top + window.scrollY + r.height * +h.dataset.y) + "px";
+    tip.classList.add("on");
+  });
+  function barrasH(datos) {
+    const max = Math.max(...datos.map(d => d[1]));
+    return `<div class="barras-h">${datos.map(([n, v], i) => `<div class="bh ${i === 0 ? "top" : ""}" title="${n}: ${v} reportes"><span>${n}</span><div class="pista"><div class="barra" style="width:${(v / max) * 100}%"></div></div><span class="v num">${v}</span></div>`).join("")}</div>`;
+  }
+
+  // ================= Vistas RH =================
+  const VISTAS = {};
+
+  VISTAS["rh/inicio"] = () => {
+    const viejos = TICKETS.filter(t => t.e !== "cerrado" && t.dias > 2).length;
+    const pend = VACS.filter(v => v.e === "pend").slice(0, 3);
+    $("#main").innerHTML = `
+      <div class="rejilla r-4">
+        <div class="tarjeta dato clave"><span class="etq">Vacaciones por revisar</span><span class="valor num">${pendVac()}</span><span class="nota">${VACS.filter(v => v.e === "pend" && v.choque).length} con fechas que se cruzan</span></div>
+        <div class="tarjeta dato"><span class="etq">Reportes abiertos</span><span class="valor num">${abiertos()}</span><span class="nota ${viejos ? "alerta" : ""}">${viejos} llevan más de 2 días</span></div>
+        <div class="tarjeta dato"><span class="etq">Cartas por validar</span><span class="valor num">${pendCartas()}</span><span class="nota">Se recogen al día siguiente</span></div>
+        <div class="tarjeta dato"><span class="etq">Sesiones en kioscos hoy</span><span class="valor num">${SESIONES.at(-1)[2]}</span><span class="nota">Ayer fueron ${SESIONES.at(-2)[2]}</span></div>
+      </div>
+      <div class="rejilla r-3-2">
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Uso de los kioscos</h2><p>Sesiones por día, últimas dos semanas</p></div>
+            <div class="leyenda-g"><span><i style="background:#006283"></i>Días anteriores</span><span><i style="background:#F5821F"></i>Hoy</span></div></div>
+          ${barras(SESIONES)}
+        </section>
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Reportes por tema</h2><p>Noviembre</p></div></div>
+          ${barrasH(POR_TEMA)}
+          <p class="nota" style="font-size:13px;color:var(--suave);margin-top:14px">"Mi pago" es el tema con más reportes este mes.</p>
+        </section>
+      </div>
+      <section class="tarjeta">
+        <div class="cab"><div><h2>Vacaciones por revisar</h2><p>Las más antiguas primero</p></div><button class="boton claro mini" data-ruta="vacaciones">Ver todas</button></div>
+        <div class="lista">${pend.slice().reverse().map(v => { const e = EMP[v.no]; return `
+          <button class="item" data-ir-vac="${v.id}"><span class="avatar">${iniciales(e.n)}</span>
+            <span class="txt"><b>${e.n}</b><span>${e.a}. Del ${v.del} al ${v.al}, ${v.dias} ${v.dias === 1 ? "día" : "días"}</span></span>
+            ${v.choque ? `<span class="estado pend">Se cruza</span>` : ""}<span class="estado gris">Enviada el ${v.env}</span></button>`; }).join("")}</div>
+      </section>`;
+    $("#main").onclick = e => { const b = e.target.closest("[data-ir-vac]"); if (b) { st.vacSel = b.dataset.irVac; st.vacFiltro = "pend"; ir("vacaciones"); } };
+  };
+
+  VISTAS.vacaciones = () => {
+    const filtros = [["pend", "Por revisar"], ["ok", "Aprobadas"], ["no", "Rechazadas"], ["todas", "Todas"]];
+    const lista = VACS.filter(v => st.vacFiltro === "todas" || v.e === st.vacFiltro);
+    if (!lista.some(v => v.id === st.vacSel)) st.vacSel = lista[0]?.id;
+    const v = VACS.find(x => x.id === st.vacSel), e = v && EMP[v.no];
+    const detalle = !v ? `<div class="vacio">${ico("i-palomita")}<b>No hay solicitudes aquí</b><span>Cuando un empleado pida vacaciones en el kiosco, aparece en esta lista.</span></div>` : `
+      <div class="detalle">
+        <div class="cab" style="margin:0"><div><h2>${e.n}</h2><p>${e.p}, ${e.a}. Turno ${e.t.toLowerCase()}</p></div>${chip(estadoVac[v.e])}</div>
+        <div class="renglones">
+          <div class="renglon"><span>Folio</span><b class="num">${v.id}</b></div>
+          <div class="renglon"><span>Fechas</span><b>Del ${v.del} al ${v.al}</b></div>
+          <div class="renglon"><span>Días que usa</span><b class="num">${v.dias}</b></div>
+          <div class="renglon"><span>Saldo antes de esta solicitud</span><b class="num">${e.saldo} días</b></div>
+          <div class="renglon"><span>Le quedarían</span><b class="num">${e.saldo - v.dias} días</b></div>
+          <div class="renglon"><span>Enviada desde el kiosco</span><b>${v.env}</b></div>
+        </div>
+        ${v.choque ? `<div class="aviso-linea">${ico("i-alerta")}<span><b>Se cruza con otra solicitud.</b> ${v.choque}</span></div>` : ""}
+        ${v.e === "pend" ? (st.rechazo ? `
+          <div class="campo"><label for="motivo">Motivo del rechazo</label><textarea id="motivo" placeholder="El empleado lo verá en el kiosco. Ejemplo: Esos días hay inventario anual."></textarea><span class="ayuda">Escribe una razón clara para que pueda elegir otras fechas.</span></div>
+          <div class="acciones" style="justify-content:flex-start"><button class="boton peligro" id="confirmar-rechazo">${ico("i-x")}Rechazar solicitud</button><button class="boton claro" id="cancelar-rechazo">Cancelar</button></div>` : `
+          <div class="acciones" style="justify-content:flex-start"><button class="boton" id="aprobar">${ico("i-palomita")}Aprobar</button><button class="boton peligro" id="rechazar">${ico("i-x")}Rechazar</button></div>
+          <p style="font-size:13px;color:var(--suave)">El empleado ve la respuesta en el kiosco la próxima vez que entre. En esta fase, el registro en A3 se captura a mano.</p>`)
+        : `<div class="aviso-linea ${v.e === "ok" ? "bien" : "error"}">${ico(v.e === "ok" ? "i-palomita" : "i-x")}<span>${v.e === "ok" ? `Aprobada por ${v.quien}.` : `Rechazada por ${v.quien}. Motivo: ${esc(v.motivo)}`}</span></div>`}
+      </div>`;
+    $("#main").innerHTML = `
+      <div class="filtros">${filtros.map(([k, n]) => `<button class="filtro ${st.vacFiltro === k ? "on" : ""}" data-f="${k}">${n}<span class="n num">${k === "todas" ? VACS.length : VACS.filter(x => x.e === k).length}</span></button>`).join("")}</div>
+      <div class="rejilla r-3-2">
+        <section class="tarjeta"><div class="tabla-caja"><table>
+          <thead><tr><th>Empleado</th><th>Fechas</th><th class="der">Días</th><th>Enviada</th><th>Estado</th></tr></thead>
+          <tbody>${lista.map(x => { const p = EMP[x.no]; return `<tr class="clic ${x.id === st.vacSel ? "sel" : ""}" data-vac="${x.id}">
+            <td><b>${p.n}</b><span class="sub">${p.a}</span></td><td>${x.del} al ${x.al}${x.choque && x.e === "pend" ? `<span class="sub" style="color:#8A5A07">Se cruza con otra solicitud</span>` : ""}</td>
+            <td class="der num">${x.dias}</td><td>${x.env}</td><td>${chip(estadoVac[x.e])}</td></tr>`; }).join("") || `<tr><td colspan="5"><div class="vacio"><b>Nada por aquí</b></div></td></tr>`}</tbody>
+        </table></div></section>
+        <section class="tarjeta">${detalle}</section>
+      </div>`;
+    $("#main").onclick = ev => {
+      const f = ev.target.closest("[data-f]"); if (f) { st.vacFiltro = f.dataset.f; st.rechazo = false; return VISTAS.vacaciones(); }
+      const r = ev.target.closest("[data-vac]"); if (r) { st.vacSel = r.dataset.vac; st.rechazo = false; return VISTAS.vacaciones(); }
+      if (ev.target.closest("#aprobar")) { v.e = "ok"; v.quien = yo(); bitacora(yo(), "Aprobó vacaciones", `${v.id}, ${e.n}`, "accion"); toast(`Aprobada. ${e.n.split(" ")[0]} lo verá en el kiosco.`); siguienteVac(); return pintar(); }
+      if (ev.target.closest("#rechazar")) { st.rechazo = true; VISTAS.vacaciones(); return $("#motivo").focus(); }
+      if (ev.target.closest("#cancelar-rechazo")) { st.rechazo = false; return VISTAS.vacaciones(); }
+      if (ev.target.closest("#confirmar-rechazo")) {
+        const m = $("#motivo").value.trim();
+        if (!m) { $("#motivo").focus(); return toast("Escribe el motivo para que el empleado sepa qué cambiar."); }
+        v.e = "no"; v.quien = yo(); v.motivo = m; st.rechazo = false; bitacora(yo(), "Rechazó vacaciones", `${v.id}, ${e.n}`, "accion"); toast("Rechazada. El motivo se muestra en el kiosco."); siguienteVac(); return pintar();
+      }
+    };
+  };
+  function siguienteVac() { const s = VACS.find(x => x.e === "pend"); if (s && st.vacFiltro === "pend") st.vacSel = s.id; }
+
+  VISTAS.reportes = () => {
+    const filtros = [["abiertos", "Abiertos"], ["nuevo", "Nuevos"], ["proceso", "En proceso"], ["cerrado", "Resueltos"]];
+    const pasa = t => st.tkFiltro === "abiertos" ? t.e !== "cerrado" : t.e === st.tkFiltro;
+    const lista = TICKETS.filter(pasa);
+    if (!lista.some(t => t.id === st.tkSel)) st.tkSel = lista[0]?.id;
+    const t = TICKETS.find(x => x.id === st.tkSel), e = t && EMP[t.no];
+    const det = !t ? `<div class="vacio">${ico("i-palomita")}<b>Sin reportes en esta lista</b></div>` : `
+      <div class="detalle">
+        <div class="cab" style="margin:0"><div><h2>${t.t}</h2><p>${t.tema}. ${t.id}, enviado el ${t.fecha}</p></div>${chip(estadoTk[t.e])}</div>
+        <div class="renglones">
+          <div class="renglon"><span>Empleado</span><b>${e.n}</b></div>
+          <div class="renglon"><span>Área y turno</span><b>${e.a}, ${e.t.toLowerCase()}</b></div>
+          ${t.cuando ? `<div class="renglon"><span>Cuándo pasó</span><b>${t.cuando}</b></div>` : ""}
+        </div>
+        <div class="hilo">
+          <div class="burbuja"><span class="de">${e.n.split(" ")[0]}, desde el kiosco</span>${t.t}${t.cuando ? `. ${t.cuando}.` : "."}</div>
+          ${t.hilo.map(h => `<div class="burbuja rh"><span class="de">${h.de}</span>${esc(h.txt)}</div>`).join("")}
+        </div>
+        ${t.e !== "cerrado" ? `
+          <div class="campo"><label for="respuesta">Responder</label><textarea id="respuesta" placeholder="Escribe en lenguaje sencillo. El empleado lo lee en el kiosco."></textarea></div>
+          <div class="acciones" style="justify-content:flex-start"><button class="boton" id="responder">${ico("i-chat")}Enviar respuesta</button><button class="boton claro" id="resolver">${ico("i-palomita")}Marcar como resuelto</button></div>` : ""}
+      </div>`;
+    $("#main").innerHTML = `
+      <div class="filtros">${filtros.map(([k, n]) => `<button class="filtro ${st.tkFiltro === k ? "on" : ""}" data-f="${k}">${n}<span class="n num">${TICKETS.filter(x => k === "abiertos" ? x.e !== "cerrado" : x.e === k).length}</span></button>`).join("")}</div>
+      <div class="rejilla r-2-3">
+        <section class="tarjeta"><div class="lista">${lista.map(x => `
+          <button class="item ${x.id === st.tkSel ? "on" : ""}" data-tk="${x.id}"><span class="ic">${ico("i-chat")}</span>
+            <span class="txt"><b>${x.t}</b><span>${EMP[x.no].n.split(" ").slice(0, 2).join(" ")}. ${x.tema}</span></span>
+            ${x.e !== "cerrado" && x.dias > 2 ? `<span class="estado pend">${x.dias} días</span>` : `<span class="estado gris">${x.fecha}</span>`}</button>`).join("") || `<div class="vacio"><b>Nada por aquí</b></div>`}</div></section>
+        <section class="tarjeta">${det}</section>
+      </div>`;
+    $("#main").onclick = ev => {
+      const f = ev.target.closest("[data-f]"); if (f) { st.tkFiltro = f.dataset.f; return VISTAS.reportes(); }
+      const r = ev.target.closest("[data-tk]"); if (r) { st.tkSel = r.dataset.tk; return VISTAS.reportes(); }
+      if (ev.target.closest("#responder")) {
+        const txt = $("#respuesta").value.trim(); if (!txt) { $("#respuesta").focus(); return toast("Escribe la respuesta antes de enviarla."); }
+        t.hilo.push({ rh: true, de: yo(), txt }); if (t.e === "nuevo") t.e = "proceso";
+        bitacora(yo(), "Respondió un reporte", t.id, "accion"); toast("Enviada. El empleado la ve en el kiosco."); return pintar();
+      }
+      if (ev.target.closest("#resolver")) { t.e = "cerrado"; bitacora(yo(), "Resolvió un reporte", t.id, "accion"); toast("Reporte resuelto."); return pintar(); }
+    };
+  };
+
+  VISTAS.cartas = () => {
+    $("#main").innerHTML = `
+      <section class="tarjeta">
+        <div class="cab"><div><h2>Cartas con sueldo</h2><p>Revisa que los datos de la plantilla estén bien antes de liberarla. Una carta con datos incorrectos tiene consecuencias legales.</p></div></div>
+        <div class="tabla-caja"><table>
+          <thead><tr><th>Folio</th><th>Empleado</th><th>Para</th><th class="der">Salario diario</th><th>Pedida</th><th>Estado</th><th class="der">Acción</th></tr></thead>
+          <tbody>${CARTAS.map(c => { const e = EMP[c.no]; return `<tr>
+            <td class="num">${c.id}</td><td><b>${e.n}</b><span class="sub">${e.p}. Ingreso: ${e.ing}</span></td><td>${c.para}</td>
+            <td class="der num">${dinero(e.sd)}</td><td>${c.fecha}</td>
+            <td>${chip(c.e === "pend" ? ["Por validar", "pend"] : ["Lista para recoger", "ok"])}</td>
+            <td><div class="acciones">${c.e === "pend" ? `<button class="boton mini" data-validar="${c.id}">${ico("i-palomita")}Validar</button><button class="boton claro mini" data-ver="${c.id}">Ver carta</button>` : `<button class="boton claro mini" data-ver="${c.id}">Ver carta</button>`}</div></td></tr>`; }).join("")}</tbody>
+        </table></div>
+      </section>`;
+    $("#main").onclick = ev => {
+      const v = ev.target.closest("[data-validar]");
+      if (v) { const c = CARTAS.find(x => x.id === v.dataset.validar); c.e = "ok"; bitacora(yo(), "Validó una carta con sueldo", `${c.id}, ${EMP[c.no].n}`, "accion"); toast("Validada. El empleado la recoge mañana después de las 12:00."); return pintar(); }
+      if (ev.target.closest("[data-ver]")) toast("Maqueta: aquí se abre la carta en PDF, generada al momento.");
+    };
+  };
+
+  VISTAS.comunicados = () => {
+    const n = st.comNuevo;
+    $("#main").innerHTML = `
+      <div class="rejilla r-3-2">
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Publicados y programados</h2><p>Un comunicado sale de los kioscos solo cuando termina su vigencia</p></div></div>
+          <div class="tabla-caja"><table>
+            <thead><tr><th>Comunicado</th><th>Vigencia</th><th class="der">Lo leyeron</th><th>Estado</th></tr></thead>
+            <tbody>${COMUNICADOS.map(c => `<tr>
+              <td><b><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${COLORES[c.color]};margin-right:8px"></i>${esc(c.t)}</b><span class="sub">${esc(c.f)}</span></td>
+              <td class="num">${c.desde.slice(8)}/${c.desde.slice(5, 7)} al ${c.hasta.slice(8)}/${c.hasta.slice(5, 7)}</td>
+              <td class="der num">${c.lecturas.toLocaleString("es-MX")}</td><td>${chip(vigencia(c))}</td></tr>`).join("")}</tbody>
+          </table></div>
+        </section>
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Nuevo comunicado</h2><p>Así se verá en el kiosco</p></div></div>
+          <div class="form">
+            <div class="campo"><label for="c-titulo">Título</label><input id="c-titulo" maxlength="40" value="${esc(n.t)}" placeholder="Ejemplo: Cambio de horario del comedor"><span class="ayuda">Corto y claro. Máximo 40 letras.</span></div>
+            <div class="campo"><label for="c-fecha">Cuándo o qué</label><input id="c-fecha" maxlength="50" value="${esc(n.f)}" placeholder="Ejemplo: Desde el lunes 7 de diciembre"></div>
+            <div class="form-2">
+              <div class="campo"><label for="c-desde">Se muestra desde</label><input id="c-desde" type="date" value="${n.desde}"></div>
+              <div class="campo"><label for="c-hasta">Hasta</label><input id="c-hasta" type="date" value="${n.hasta}"></div>
+            </div>
+            <div class="campo"><label>Color de la tarjeta</label><div class="muestras">${Object.entries(COLORES).map(([k, c]) => `<button class="muestra ${n.color === k ? "on" : ""}" style="background:${c}" data-color="${k}" aria-label="Color ${k}"></button>`).join("")}</div></div>
+            <div class="kiosco-prev"><span class="chip">Vista previa en el kiosco</span>
+              <div class="tarjeta-k"><div class="arte" id="prev-arte" style="background:${COLORES[n.color]}">${esc(n.t) || "Tu título aquí"}</div><div class="pie"><b id="prev-t">${esc(n.t) || "Tu título aquí"}</b><span id="prev-f">${esc(n.f) || "La fecha o el detalle"}</span></div></div>
+            </div>
+            <div class="acciones" style="justify-content:flex-start"><button class="boton" id="publicar" ${n.t ? "" : "disabled"}>${ico("i-megafono")}Publicar en los kioscos</button></div>
+          </div>
+        </section>
+      </div>`;
+    const sync = () => {
+      n.t = $("#c-titulo").value; n.f = $("#c-fecha").value; n.desde = $("#c-desde").value; n.hasta = $("#c-hasta").value;
+      $("#prev-t").textContent = n.t || "Tu título aquí"; $("#prev-arte").textContent = n.t || "Tu título aquí"; $("#prev-f").textContent = n.f || "La fecha o el detalle";
+      $("#publicar").disabled = !n.t.trim();
+    };
+    $$("#c-titulo, #c-fecha, #c-desde, #c-hasta").forEach(i => i.addEventListener("input", sync));
+    $("#main").onclick = ev => {
+      const c = ev.target.closest("[data-color]"); if (c) { n.color = c.dataset.color; return VISTAS.comunicados(); }
+      if (ev.target.closest("#publicar")) {
+        if (n.hasta < n.desde) return toast('La fecha "Hasta" va después de "Se muestra desde".');
+        COMUNICADOS.unshift({ id: Date.now(), t: n.t.trim(), f: n.f.trim(), desde: n.desde, hasta: n.hasta, color: n.color, lecturas: 0 });
+        bitacora(yo(), "Publicó un comunicado", n.t.trim(), "accion");
+        st.comNuevo = { t: "", f: "", color: "teal", desde: "2026-11-26", hasta: "2026-12-11" };
+        toast(n.desde > HOY ? "Programado. Aparece en los kioscos en la fecha que elegiste." : "Publicado. Ya se ve en los kioscos."); VISTAS.comunicados();
+      }
+    };
+  };
+
+  VISTAS.empleados = () => {
+    const esTI = st.rol === "ti";
+    const q = st.busca.toLowerCase();
+    const filas = Object.entries(EMP).filter(([no, e]) => !q || no.includes(q) || e.n.toLowerCase().includes(q) || e.a.toLowerCase().includes(q));
+    $("#main").innerHTML = `
+      <section class="tarjeta">
+        <div class="cab">
+          <label class="buscar">${ico("i-lupa")}<input id="busca" placeholder="Buscar por nombre, número o área" value="${esc(st.busca)}" aria-label="Buscar empleado"></label>
+          <p>1,248 empleados en la plantilla. Aquí se muestran 8 de ejemplo.</p>
+        </div>
+        ${esTI ? `<div class="aviso-linea" style="background:var(--teal-claro);color:var(--teal);margin-bottom:14px">${ico("i-llave")}<span>Como Admin TI no ves sueldos ni saldos. Así lo pide la separación de permisos.</span></div>` : ""}
+        <div class="tabla-caja"><table>
+          <thead><tr><th>Número</th><th>Nombre</th><th>Puesto</th><th>Área</th><th>Turno</th><th>Ingreso</th>${esTI ? "<th>Acceso al kiosco</th>" : '<th class="der">Salario diario</th><th class="der">Días de vacaciones</th>'}</tr></thead>
+          <tbody id="emp-body">${filas.map(([no, e]) => `<tr>
+            <td class="num">${no}</td><td><b>${e.n}</b></td><td>${e.p}</td><td>${e.a}</td><td>${e.t}</td><td>${e.ing}</td>
+            ${esTI ? `<td><span class="estado ok">Activo</span></td>` : `<td class="der num">${dinero(e.sd)}</td><td class="der num">${e.saldo}</td>`}</tr>`).join("") || `<tr><td colspan="8"><div class="vacio"><b>No encontramos a nadie con "${esc(st.busca)}"</b><span>Revisa el número o busca por apellido.</span></div></td></tr>`}</tbody>
+        </table></div>
+      </section>`;
+    const i = $("#busca"); i.addEventListener("input", () => { st.busca = i.value; VISTAS.empleados(); const n = $("#busca"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); });
+    $("#main").onclick = null;
+  };
+
+  // ================= Vistas TI =================
+  VISTAS["ti/inicio"] = () => {
+    const ult = IMPORTS[0];
+    $("#main").innerHTML = `
+      <div class="rejilla r-4">
+        <div class="tarjeta dato"><span class="etq">Última importación</span><span class="valor" style="font-size:28px">${ult.hora}</span><span class="nota">${chip(["Sin errores", "ok"])} ${ult.msg}</span></div>
+        <div class="tarjeta dato"><span class="etq">Kioscos en línea</span><span class="valor num">3 de 3</span><span class="nota">Comedor, entrada y almacén</span></div>
+        <div class="tarjeta dato clave"><span class="etq">Alertas de seguridad hoy</span><span class="valor num">${BITACORA.filter(b => b[4] === "alerta").length}</span><span class="nota">PIN incorrecto 3 veces</span></div>
+        <div class="tarjeta dato"><span class="etq">Último respaldo</span><span class="valor" style="font-size:28px">Hoy, 2:00</span><span class="nota">1.1 GB comprimido. Se guardan 14 días</span></div>
+      </div>
+      <div class="rejilla r-2">
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Espacio en el servidor</h2><p>Base de datos, fotos, bitácora y respaldos</p></div></div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px"><span style="font-size:36px;font-weight:300" class="num">20.0 GB</span><span style="color:var(--suave)">de 50 GB</span></div>
+          <div class="medidor"><span style="width:40%"></span></div>
+          <div class="renglones" style="margin-top:16px">
+            <div class="renglon"><span>Respaldos (14 días)</span><b class="num">15.4 GB</b></div>
+            <div class="renglon"><span>Base de datos</span><b class="num">2.9 GB</b></div>
+            <div class="renglon"><span>Fotos de empleados</span><b class="num">0.1 GB</b></div>
+            <div class="renglon"><span>Sistema y aplicación</span><b class="num">1.6 GB</b></div>
+          </div>
+          <p style="font-size:13px;color:var(--suave);margin-top:12px">Los recibos y cartas no se guardan: se generan al momento.</p>
+        </section>
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Actividad reciente</h2><p>De la bitácora</p></div><button class="boton claro mini" data-ruta="bitacora">Ver bitácora</button></div>
+          <div class="lista">${BITACORA.slice(0, 5).map(b => `<div class="item"><span class="txt"><b>${b[2]}</b><span>${b[1]}. ${b[3]}</span></span>${chip(TIPOS_BIT[b[4]])}<span class="estado gris">${b[0]}</span></div>`).join("")}</div>
+        </section>
+      </div>`;
+    $("#main").onclick = null;
+  };
+
+  VISTAS.usuarios = () => {
+    $("#main").innerHTML = `
+      <div class="rejilla r-3-2">
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Usuarios del panel</h2><p>Los operadores entran al kiosco con su número y PIN; no aparecen aquí</p></div></div>
+          <div class="tabla-caja"><table>
+            <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Última vez</th><th>Acceso</th></tr></thead>
+            <tbody>${USUARIOS.map((u, i) => `<tr>
+              <td><b>${u.n}</b></td><td class="num">${u.u}</td>
+              <td><select data-rolu="${i}" aria-label="Rol de ${u.n}" style="border:1px solid var(--borde);border-radius:10px;padding:6px 8px;background:#fff">${["Admin RH", "Admin TI"].map(r => `<option ${u.rol === r ? "selected" : ""}>${r}</option>`).join("")}</select></td>
+              <td>${u.ult}</td><td><button class="switch" role="switch" aria-checked="${u.on}" data-acc="${i}" aria-label="Acceso de ${u.n}"></button></td></tr>`).join("")}</tbody>
+          </table></div>
+        </section>
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Qué puede hacer cada rol</h2></div></div>
+          <div class="renglones">
+            <div class="renglon"><span>Aprobar vacaciones y responder reportes</span><b>RH</b></div>
+            <div class="renglon"><span>Ver sueldos y saldos</span><b>RH</b></div>
+            <div class="renglon"><span>Publicar comunicados</span><b>RH</b></div>
+            <div class="renglon"><span>Usuarios, campos y parámetros</span><b>TI</b></div>
+            <div class="renglon"><span>Importar datos y ver bitácora</span><b>TI</b></div>
+          </div>
+          <p style="font-size:13px;color:var(--suave);margin-top:12px">TI no ve sueldos y RH no cambia la estructura del sistema. Así cada cambio queda claro en la bitácora.</p>
+        </section>
+      </div>`;
+    $("#main").onclick = ev => {
+      const s = ev.target.closest("[data-acc]");
+      if (s) { const u = USUARIOS[+s.dataset.acc]; u.on = !u.on; bitacora(yo(), u.on ? "Dio acceso" : "Quitó acceso", u.n, "config"); toast(u.on ? `${u.n.split(" ")[0]} ya puede entrar.` : `${u.n.split(" ")[0]} ya no puede entrar.`); VISTAS.usuarios(); }
+    };
+    $$("[data-rolu]").forEach(sel => sel.addEventListener("change", () => { const u = USUARIOS[+sel.dataset.rolu]; u.rol = sel.value; bitacora(yo(), "Cambió un rol", `${u.n}: ${u.rol}`, "config"); toast(`${u.n.split(" ")[0]} ahora es ${u.rol}.`); }));
+  };
+
+  VISTAS.campos = () => {
+    $("#main").innerHTML = `
+      <div class="rejilla r-3-2">
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Campos disponibles</h2><p>Al activar uno, aparece en "Mis datos" del kiosco y en la ficha del empleado</p></div></div>
+          <div class="tabla-caja"><table>
+            <thead><tr><th>Campo</th><th>Tipo</th><th>Obligatorio</th><th>Activo</th></tr></thead>
+            <tbody>${CAMPOS.map((c, i) => `<tr><td><b>${c.l}</b><span class="sub num">${c.k}</span></td><td>${c.tipo}</td>
+              <td><button class="switch" role="switch" aria-checked="${c.ob}" data-ob="${i}" aria-label="${c.l} obligatorio" ${c.on ? "" : "disabled"} style="${c.on ? "" : "opacity:.4"}"></button></td>
+              <td><button class="switch" role="switch" aria-checked="${c.on}" data-on="${i}" aria-label="Activar ${c.l}"></button></td></tr>`).join("")}</tbody>
+          </table></div>
+          <p style="font-size:13px;color:var(--suave);margin-top:12px">Para un campo que no está en la lista, pídelo a desarrollo: se deja preparado y aquí solo se activa.</p>
+        </section>
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Así se ve en el kiosco</h2><p>Mis datos, campos extra</p></div></div>
+          <div class="kiosco-prev">${CAMPOS.filter(c => c.on).map(c => `<div class="campo-k ${c.k === st.recien ? "nuevo" : ""}"><span>${c.l}${c.ob ? " (obligatorio)" : ""}</span><b>${c.ej}</b></div>`).join("") || `<div class="vacio"><b>Sin campos extra</b><span>Activa uno para verlo aquí.</span></div>`}</div>
+        </section>
+      </div>`;
+    $("#main").onclick = ev => {
+      const a = ev.target.closest("[data-on]"), o = ev.target.closest("[data-ob]");
+      if (a) { const c = CAMPOS[+a.dataset.on]; c.on = !c.on; if (!c.on) c.ob = false; st.recien = c.on ? c.k : null; bitacora(yo(), "Cambió un campo", `${c.on ? "Activó" : "Desactivó"} "${c.l}"`, "config"); toast(c.on ? `"${c.l}" ya aparece en los kioscos.` : `"${c.l}" ya no aparece.`); VISTAS.campos(); }
+      else if (o && !o.disabled) { const c = CAMPOS[+o.dataset.ob]; c.ob = !c.ob; VISTAS.campos(); }
+    };
+  };
+
+  VISTAS.integraciones = () => {
+    const PASOS = ["Archivo recibido", "Revisión de columnas y tipos", "Comparación con lo publicado", "Listo para publicar"];
+    const imp = st.imp;
+    let panel;
+    if (!imp) panel = `
+      <div class="detalle">
+        <p style="color:var(--suave)">Sube el Excel de plantilla o la exportación de A3. Primero se revisa en una zona de pruebas; si algo falla, no se publica nada.</p>
+        <button class="boton" id="cargar">${ico("i-subir")}Cargar archivo de ejemplo</button>
+        <div class="aviso-linea" style="background:var(--teal-claro);color:var(--teal)">${ico("i-sync")}<span>En esta fase la carga es manual. La importación automática a las 6:00 y la conexión directa con A3 van en la fase 2.</span></div>
+      </div>`;
+    else panel = `
+      <div class="detalle">
+        <div class="renglones"><div class="renglon"><span>Archivo</span><b class="num">plantilla_2026-11-26.xlsx</b></div><div class="renglon"><span>Tipo</span><b>Excel de plantilla</b></div></div>
+        <div class="pasos-imp">${PASOS.map((p, i) => `<div class="paso-imp ${i < imp.paso ? "hecho" : i === imp.paso ? "activo" : ""}"><i>${i < imp.paso ? "✓" : i + 1}</i>${p}</div>`).join("")}</div>
+        ${imp.paso >= PASOS.length - 1 ? `
+          <div class="aviso-linea bien">${ico("i-palomita")}<span><b>1,249 registros sin errores.</b> 1 alta nueva: Sofía Jiménez Rangel, Línea 2. Ninguna baja.</span></div>
+          <div class="aviso-linea">${ico("i-alerta")}<span>1 empleado sin foto. Puede entrar al kiosco igual; se le muestra un avatar.</span></div>
+          <div class="acciones" style="justify-content:flex-start"><button class="boton" id="publicar-imp">Publicar datos</button><button class="boton claro" id="descartar-imp">Descartar</button></div>` : ""}
+      </div>`;
+    $("#main").innerHTML = `
+      <div class="rejilla r-2-3">
+        <section class="tarjeta"><div class="cab"><div><h2>Nueva importación</h2></div></div>${panel}</section>
+        <section class="tarjeta">
+          <div class="cab"><div><h2>Historial</h2><p>Cada carga queda registrada, haya salido bien o no</p></div></div>
+          <div class="tabla-caja"><table>
+            <thead><tr><th>Archivo</th><th>Cuándo</th><th>Resultado</th></tr></thead>
+            <tbody>${IMPORTS.map(i => `<tr><td><b class="num">${i.f}</b><span class="sub">${i.fuente}</span></td><td style="white-space:nowrap">${i.hora}</td>
+              <td>${chip(i.e === "ok" ? ["Publicado", "ok"] : i.e === "pend" ? ["Publicado con avisos", "pend"] : ["No se publicó", "no"])}<span class="sub" style="margin-top:4px">${i.msg}</span></td></tr>`).join("")}</tbody>
+          </table></div>
+        </section>
+      </div>`;
+    $("#main").onclick = ev => {
+      if (ev.target.closest("#cargar")) {
+        st.imp = { paso: 0 }; VISTAS.integraciones();
+        const avanza = () => { if (!st.imp || st.ruta !== "integraciones") return; st.imp.paso++; VISTAS.integraciones(); if (st.imp.paso < 3) setTimeout(avanza, 700); };
+        setTimeout(avanza, 700);
+      }
+      if (ev.target.closest("#publicar-imp")) {
+        IMPORTS.unshift({ f: "plantilla_2026-11-26.xlsx", fuente: "Excel de plantilla", hora: "Ahora", e: "ok", msg: "1,249 registros. 1 alta." });
+        bitacora(yo(), "Importó la plantilla", "1,249 registros", "datos"); st.imp = null; toast("Publicado. Los kioscos ya muestran los datos nuevos."); VISTAS.integraciones();
+      }
+      if (ev.target.closest("#descartar-imp")) { st.imp = null; toast("Descartado. No se cambió nada."); VISTAS.integraciones(); }
+    };
+  };
+
+  VISTAS.bitacora = () => {
+    const tipos = [["todo", "Todo"], ["accion", "Acciones de RH"], ["sensible", "Datos sensibles"], ["alerta", "Alertas"], ["config", "Configuración"], ["datos", "Datos"]];
+    const filas = BITACORA.filter(b => st.bitFiltro === "todo" || b[4] === st.bitFiltro);
+    $("#main").innerHTML = `
+      <div class="filtros">${tipos.map(([k, n]) => `<button class="filtro ${st.bitFiltro === k ? "on" : ""}" data-f="${k}">${n}</button>`).join("")}</div>
+      <section class="tarjeta">
+        <div class="tabla-caja"><table>
+          <thead><tr><th>Cuándo</th><th>Quién</th><th>Qué hizo</th><th>Detalle</th><th>Tipo</th></tr></thead>
+          <tbody>${filas.map(b => `<tr><td class="num" style="white-space:nowrap">${b[0]}</td><td>${b[1]}</td><td><b>${b[2]}</b></td><td>${b[3]}</td><td>${chip(TIPOS_BIT[b[4]])}</td></tr>`).join("") || `<tr><td colspan="5"><div class="vacio"><b>Sin registros de este tipo</b></div></td></tr>`}</tbody>
+        </table></div>
+        <p style="font-size:13px;color:var(--suave);margin-top:12px">La bitácora no se puede editar ni borrar desde el panel. Se guarda 5 años.</p>
+      </section>`;
+    $("#main").onclick = ev => { const f = ev.target.closest("[data-f]"); if (f) { st.bitFiltro = f.dataset.f; VISTAS.bitacora(); } };
+  };
+
+  VISTAS.parametros = () => {
+    const p = st.params;
+    const campo = (id, l, v, suf, ayuda) => `<div class="campo"><label for="${id}">${l}</label><div style="display:flex;align-items:center;gap:10px"><input id="${id}" type="number" min="1" value="${v}" style="max-width:120px"><span>${suf}</span></div><span class="ayuda">${ayuda}</span></div>`;
+    $("#main").innerHTML = `
+      <div class="rejilla r-2">
+        <section class="tarjeta"><div class="cab"><div><h2>Kiosco</h2></div></div><div class="form">
+          ${campo("p-sesion", "Cerrar la sesión sin actividad", p.sesion, "minutos", "En una pantalla compartida, menos es más seguro.")}
+          ${campo("p-pin", "Intentos de PIN antes de bloquear", p.pin, "intentos", "Después se bloquea 15 minutos y queda en la bitácora.")}
+        </div></section>
+        <section class="tarjeta"><div class="cab"><div><h2>Reglas y retención</h2></div></div><div class="form">
+          ${campo("p-anticip", "Anticipación mínima para pedir vacaciones", p.anticip, "días", "El calendario del kiosco no deja elegir antes.")}
+          ${campo("p-ret", "Tiempo que se guarda la bitácora", p.retencion, "años", "Confírmalo con legal antes de cambiarlo.")}
+        </div></section>
+      </div>
+      <div><button class="boton" id="guardar-p">Guardar cambios</button></div>`;
+    $("#main").onclick = ev => {
+      if (!ev.target.closest("#guardar-p")) return;
+      const vals = { sesion: +$("#p-sesion").value, pin: +$("#p-pin").value, anticip: +$("#p-anticip").value, retencion: +$("#p-ret").value };
+      if (Object.values(vals).some(v => !(v >= 1))) return toast("Todos los valores deben ser 1 o más.");
+      st.params = vals; bitacora(yo(), "Cambió parámetros", `Sesión ${vals.sesion} min, PIN ${vals.pin} intentos`, "config"); toast("Guardado. Los kioscos usan los valores nuevos desde la siguiente sesión.");
+    };
+  };
+
+  // ================= Arranque =================
+  const [rol0, ruta0] = (location.hash.slice(1) || "rh-inicio").split("-");
+  ir(ruta0 || "inicio", NAV[rol0] ? rol0 : "rh");
+})();
+</script>
+</body>
+</html>

@@ -1,27 +1,36 @@
-<title>Kiosko RH</title>
+<!doctype html>
+<html lang="es">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kiosko RH</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,700;1,400&display=swap">
 <style>
-/* Layout: "consola de canales". Riel de iconos a la izquierda, rejilla 3×2 de canales cuadrados
+/* Marca Visteon (Brand Guide 2026): Roboto; navy #00293F/#113B5E, teal #006283, blancos y gris #D6D8D1.
+   El naranja #F5821F solo resalta: el canal señalado y el dato clave. Logo y V-tag no se redibujan.
+   Layout: "consola de canales". Riel de iconos a la izquierda, rejilla 3×2 de canales cuadrados
    con vista previa en vivo, foto del usuario arriba a la derecha y un dock curvo abajo con
    Inicio y Salir en las esquinas y el reloj al centro. Un solo mundo visual claro, a propósito. */
 :root {
-  --nube: #F2F6F9;        /* fondo, blanco frío */
-  --raya: #E8EEF2;        /* rayas del fondo */
+  --nube: #F6F5FA;        /* fondo, blanco frío */
+  --raya: #ECEBF2;        /* rayas del fondo */
   --concha: #FFFFFF;      /* superficie de canales */
-  --borde: #D3DDE4;       /* contorno de canales */
-  --agua: #1FA6DB;        /* acento: foco, selección */
-  --agua-claro: #D9F1FB;
-  --agua-hondo: #0E7FB0;
-  --tinta: #34444F;       /* texto principal */
-  --tinta-suave: #7D8F9B; /* texto secundario, reloj */
-  --ok: #2FAE63;
-  --espera: #E9A126;
-  --alto: #E0524A;
-  --display: "M PLUS Rounded 1c", "Nunito", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --borde: #D6D8D1;       /* contorno de canales */
+  --agua: #006283;        /* acento: foco, selección */
+  --agua-claro: #DDEEF2;
+  --agua-hondo: #00293F;
+  --naranja: #F5821F;     /* resalte: foco de canal, dato clave */
+  --naranja-claro: #FDE3CC;
+  --marino: #113B5E;
+  --tinta: #00293F;       /* texto principal */
+  --tinta-suave: #5F6E78; /* texto secundario, reloj */
+  --ok: #2E9D5B;
+  --espera: #FAA519;
+  --alto: #D64541;
+  --display: "Roboto", "Helvetica Neue", Arial, system-ui, sans-serif;
   --dock-h: 150px;
   --top-h: 104px;
   --rail-w: 128px;
@@ -43,12 +52,68 @@ body {
   overflow: hidden;
 }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
-button:focus-visible { outline: 4px solid var(--agua); outline-offset: 4px; }
+button:focus-visible { outline: 4px solid var(--naranja); outline-offset: 4px; }
 h1, h2, h3, p { margin: 0; }
 h1, h2 { text-wrap: balance; }
 .num { font-variant-numeric: tabular-nums; }
 .screen { position: absolute; inset: 0; display: none; }
 .screen.on { display: grid; }
+
+/* ---------- Fondo de marca ---------- */
+.screen { z-index: 1; }
+.aviso, .zoom { z-index: 60; }
+.fondo {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .4s;
+  background: #F6F5FA url("assets/fondo-visteon.jpg") left center / auto 100% no-repeat;
+}
+body.con-fondo .fondo { opacity: 1; }
+/* dentro de la app el fondo queda como marca de agua bajo las rayas */
+.fondo::after {
+  content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .3s;
+  background: repeating-linear-gradient(0deg, rgba(246,245,250,.88) 0 4px, rgba(236,235,242,.88) 4px 6px);
+}
+body.en-app .fondo::after { opacity: 1; }
+/* login: la imagen de marca ocupa toda la pantalla (cover). La V queda a la izquierda y el logo
+   arriba a la derecha; la columna blanca va a la derecha, debajo del logo, y todo se ajusta a la altura. */
+body.con-fondo .fondo { background-size: cover; background-position: left center; }
+body.con-fondo #s-login { grid-template-rows: minmax(0, 1fr) 104px; }
+body.con-fondo #s-login .dock { height: 104px; }
+body.con-fondo #s-login .dock-esq { visibility: hidden; }
+body.con-fondo #s-login .dock-centro { margin-top: 0; background: transparent; border: 0; box-shadow: none; }
+body.con-fondo .login-cuerpo {
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 12px;
+  max-width: none; height: 100%; min-height: 0;
+  /* baja la columna lo justo para no tapar el logo del fondo (su borde inferior cae en 50vh - 22.2vw) */
+  padding-top: max(24px, calc(50vh - 22.2vw + 36px)); padding-bottom: 8px;
+  padding-right: max(5vw, 32px, env(safe-area-inset-right, 0px));
+}
+body.con-fondo .login-texto, body.con-fondo .teclado-caja { width: min(460px, 100%); flex: none; }
+body.con-fondo .login-texto {
+  align-self: auto; background: rgba(255,255,255,.78); color: var(--tinta);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 3px solid rgba(255,255,255,.9); box-shadow: 0 14px 34px rgba(60,40,110,.10);
+  padding: clamp(14px, 2.2vh, 24px) 26px; border-radius: 28px;
+}
+body.con-fondo .login-texto .marca { color: var(--agua-hondo); font-size: 18px; }
+body.con-fondo .login-texto .marca-sello { background: var(--marino); color: #fff; width: 40px; height: 40px; border-radius: 13px; font-size: 17px; }
+body.con-fondo .login-texto h1 { font-size: clamp(24px, 3.3vh, 34px); margin-top: clamp(8px, 1.4vh, 16px); }
+body.con-fondo .login-texto p { color: var(--tinta-suave); font-size: 16px; margin-top: 6px; }
+body.con-fondo .login-quien span { color: var(--tinta-suave) !important; }
+body.con-fondo .login-texto .ayuda-gafete { background: var(--nube); border-color: var(--borde); color: var(--tinta-suave); margin-top: 10px; font-size: 14px; padding: 6px 14px 6px 8px; }
+body.con-fondo .login-texto .ayuda-gafete svg { width: 22px; height: 22px; }
+body.con-fondo .login-quien { margin-top: 10px; gap: 12px; }
+body.con-fondo .login-quien .foto { width: 52px; height: 52px; border-radius: 16px; }
+body.con-fondo .login-quien b { font-size: 20px; }
+body.con-fondo .logo-oficial { display: none; }   /* el logo ya viene en el fondo */
+body.con-fondo .teclado-caja { padding: clamp(14px, 2vh, 24px); border-radius: 30px; }
+body.con-fondo .campo-titulo { font-size: 17px; }
+body.con-fondo .casillas { margin: clamp(8px, 1.2vh, 14px) 0 clamp(10px, 1.6vh, 18px); }
+body.con-fondo .casilla { height: clamp(44px, 5.6vh, 62px); font-size: clamp(24px, 3vh, 30px); }
+body.con-fondo .teclado { gap: clamp(8px, 1.1vh, 12px); }
+body.con-fondo .tecla { height: clamp(48px, 6.4vh, 76px); font-size: clamp(24px, 3.1vh, 32px); border-radius: 22px; }
+body.con-fondo .tecla.entrar { font-size: 20px; }
+body.con-fondo .demo-nota { margin-top: 10px; font-size: 13px; }
+body.con-fondo .error-txt { margin: -4px 0 4px; min-height: 1.2em; font-size: 15px; }
 
 /* ---------- Dock (compartido) ---------- */
 .dock {
@@ -68,13 +133,13 @@ h1, h2 { text-wrap: balance; }
   display: grid; place-content: center; text-align: center;
   box-shadow: 0 -1px 0 var(--borde);
 }
-.reloj { font-size: 52px; font-weight: 700; color: var(--tinta-suave); line-height: 1; letter-spacing: .02em; }
+.reloj { font-size: 54px; font-weight: 300; color: var(--tinta-suave); line-height: 1; letter-spacing: .02em; }
 .fecha { font-size: 18px; color: var(--tinta-suave); margin-top: 6px; }
 .redondo {
   position: absolute; top: 14px; width: 112px; height: 112px; border-radius: 50%;
-  background: radial-gradient(circle at 50% 28%, #fff 0 45%, #EEF3F6 100%);
+  background: radial-gradient(circle at 50% 28%, #fff 0 45%, #F2F3EF 100%);
   border: 3px solid var(--borde);
-  box-shadow: 0 6px 14px rgba(52,68,79,.12), inset 0 -4px 0 rgba(52,68,79,.05);
+  box-shadow: 0 6px 14px rgba(0,41,63,.12), inset 0 -4px 0 rgba(0,41,63,.05);
   display: grid; place-content: center; justify-items: center; gap: 2px;
   font-size: 16px; font-weight: 700; color: var(--tinta);
   transition: transform .12s, border-color .12s, box-shadow .12s;
@@ -82,7 +147,7 @@ h1, h2 { text-wrap: balance; }
 .dock-esq.izq .redondo { left: 40px; }
 .dock-esq.der .redondo { right: 40px; }
 .redondo svg { width: 40px; height: 40px; }
-.redondo:hover, .redondo:focus-visible { border-color: var(--agua); box-shadow: 0 0 0 6px var(--agua-claro), 0 6px 14px rgba(52,68,79,.12); outline: none; }
+.redondo:hover, .redondo:focus-visible { border-color: var(--naranja); box-shadow: 0 0 0 6px var(--naranja-claro), 0 6px 14px rgba(0,41,63,.12); outline: none; }
 .redondo:active { transform: scale(.94); }
 .redondo.salir svg { color: var(--alto); }
 
@@ -93,13 +158,26 @@ h1, h2 { text-wrap: balance; }
   align-items: center; max-width: 1180px; width: 100%; margin: 0 auto;
   padding-block: 40px; padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px));
 }
-.marca { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 22px; color: var(--agua-hondo); }
+.marca { display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 22px; color: var(--agua-hondo); line-height: 1.15; }
 .marca-sello {
-  width: 48px; height: 48px; border-radius: 15px; background: var(--agua); color: #fff;
+  width: 48px; height: 48px; border-radius: 15px; background: var(--marino); color: #fff;
   display: grid; place-content: center; font-size: 20px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12);
 }
-.login-texto h1 { font-size: 64px; font-weight: 800; line-height: 1.05; margin-top: 36px; }
-.login-texto p { font-size: 24px; color: var(--tinta-suave); margin-top: 20px; max-width: 26ch; }
+.login-texto h1 { font-size: 62px; font-weight: 300; line-height: 1.08; margin-top: 40px; }
+.login-texto {
+  align-self: stretch; display: flex; flex-direction: column; justify-content: center;
+  background: linear-gradient(140deg, #001D3A 0%, #0F2A55 45%, #00718B 100%); color: #fff;
+  border-radius: 40px; padding: 48px 52px; position: relative; overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0,41,63,.18);
+}
+.login-texto .marca { color: #fff; }
+.login-texto .marca-sello { background: #fff; color: var(--marino); }
+.login-texto p { font-size: 24px; color: rgba(255,255,255,.82); margin-top: 20px; max-width: 26ch; }
+.login-quien span { color: rgba(255,255,255,.75) !important; }
+.login-texto .ayuda-gafete { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28); color: #fff; align-self: flex-start; }
+.login-texto .ayuda-gafete svg { color: var(--naranja); }
+.logo-oficial { position: absolute; top: 40px; right: 44px; height: 40px; width: auto; }
+.marca small { display: block; font-size: 15px; font-weight: 400; opacity: .75; letter-spacing: .01em; }
 .login-quien { display: flex; align-items: center; gap: 18px; margin-top: 36px; }
 .login-quien[hidden] { display: none !important; }
 .login-quien .foto { width: 88px; height: 88px; border-radius: 26px; }
@@ -114,13 +192,13 @@ h1, h2 { text-wrap: balance; }
 
 .teclado-caja {
   background: var(--concha); border: 3px solid var(--borde); border-radius: 40px; padding: 28px;
-  box-shadow: 0 18px 40px rgba(52,68,79,.10), inset 0 2px 0 #fff;
+  box-shadow: 0 18px 40px rgba(0,41,63,.10), inset 0 2px 0 #fff;
 }
 .campo-titulo { font-size: 20px; font-weight: 700; text-align: center; }
 .casillas { display: flex; justify-content: center; gap: 10px; margin: 16px 0 24px; }
 .casilla {
   width: 52px; height: 66px; border-radius: 16px; background: var(--nube); border: 2px solid var(--borde);
-  display: grid; place-content: center; font-size: 32px; font-weight: 800;
+  display: grid; place-content: center; font-size: 32px; font-weight: 700;
 }
 .casilla.activa { border-color: var(--agua); box-shadow: 0 0 0 4px var(--agua-claro); }
 .casillas.pin .casilla { width: 62px; }
@@ -128,14 +206,14 @@ h1, h2 { text-wrap: balance; }
 .teclado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .tecla {
   height: 84px; border-radius: 26px; font-size: 34px; font-weight: 700;
-  background: linear-gradient(#fff, #F1F5F8); border: 2px solid var(--borde);
+  background: linear-gradient(#fff, #F2F3EF); border: 2px solid var(--borde);
   box-shadow: 0 4px 0 var(--borde);
   transition: transform .06s, box-shadow .06s, border-color .1s;
 }
 .tecla:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--borde); border-color: var(--agua); }
 .tecla.borrar svg { width: 36px; height: 36px; }
 .tecla.entrar { background: var(--agua); color: #fff; border-color: var(--agua-hondo); box-shadow: 0 4px 0 var(--agua-hondo); font-size: 22px; }
-.tecla.entrar:disabled { background: #E3EAEF; color: #A9B7C0; border-color: var(--borde); box-shadow: 0 4px 0 var(--borde); cursor: default; }
+.tecla.entrar:disabled { background: #E7E9E3; color: #A3A8A6; border-color: var(--borde); box-shadow: 0 4px 0 var(--borde); cursor: default; }
 .tecla-mini { height: 72px; font-size: 30px; border-radius: 22px; }
 .demo-nota { text-align: center; font-size: 15px; color: var(--tinta-suave); margin-top: 18px; }
 .error-txt { text-align: center; color: var(--alto); font-weight: 700; min-height: 1.4em; margin-top: -10px; margin-bottom: 8px; font-size: 17px; }
@@ -167,8 +245,8 @@ h1, h2 { text-wrap: balance; }
   grid-area: top; display: flex; align-items: center; justify-content: space-between; gap: 24px;
   padding-right: max(36px, env(safe-area-inset-right, 0px)); padding-left: 8px;
 }
-.saludo { font-size: 30px; font-weight: 800; }
-.saludo small { display: block; font-size: 17px; font-weight: 500; color: var(--tinta-suave); }
+.saludo { font-size: 32px; font-weight: 300; }
+.saludo small { display: block; font-size: 17px; font-weight: 400; color: var(--tinta-suave); }
 .yo {
   display: flex; align-items: center; gap: 14px; background: var(--concha); border: 2px solid var(--borde);
   border-radius: 999px; padding: 8px 22px 8px 8px; text-align: left;
@@ -176,7 +254,7 @@ h1, h2 { text-wrap: balance; }
 .yo .foto { width: 64px; height: 64px; border-radius: 50%; }
 .yo b { display: block; font-size: 19px; }
 .yo span { display: block; font-size: 15px; color: var(--tinta-suave); }
-.foto { display: block; overflow: hidden; background: linear-gradient(160deg, #CFEFFC, #A6DDF3); flex: none; }
+.foto { display: block; overflow: hidden; background: linear-gradient(160deg, #D7EAEF, #AFD3DC); flex: none; }
 .foto svg { width: 100%; height: 100%; display: block; }
 
 main { grid-area: main; position: relative; min-height: 0; padding-right: max(36px, env(safe-area-inset-right, 0px)); padding-left: 8px; padding-bottom: 18px; }
@@ -193,9 +271,9 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 }
 .canal {
   position: relative; border-radius: 34px; overflow: hidden; text-align: left;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F6F9FB 100%);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7F8F5 100%);
   border: 3px solid var(--borde);
-  box-shadow: 0 10px 22px rgba(52,68,79,.08), inset 0 2px 0 #fff;
+  box-shadow: 0 10px 22px rgba(0,41,63,.08), inset 0 2px 0 #fff;
   display: grid; grid-template-rows: 1fr auto;
   transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
 }
@@ -205,31 +283,31 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
   background: linear-gradient(rgba(255,255,255,.75), rgba(255,255,255,0)); pointer-events: none;
 }
 .canal:hover, .canal:focus-visible {
-  border-color: var(--agua); outline: none; transform: translateY(-4px);
-  box-shadow: 0 0 0 7px var(--agua-claro), 0 18px 30px rgba(31,166,219,.22);
+  border-color: var(--naranja); outline: none; transform: translateY(-4px);
+  box-shadow: 0 0 0 7px var(--naranja-claro), 0 18px 30px rgba(245,130,31,.24);
 }
 .canal:active { transform: scale(.97); }
 .vistazo { position: relative; display: grid; place-items: center; min-height: 0; padding: 7% 7% 0; }
 .vistazo > svg { width: 52%; height: auto; max-height: 100%; }
 .canal-pie { padding: 0 8% 7%; display: grid; gap: 2px; }
-.canal-nombre { font-size: clamp(20px, calc(var(--tile) * .085), 32px); font-weight: 800; line-height: 1.1; }
-.canal-dato { font-size: clamp(14px, calc(var(--tile) * .05), 19px); color: var(--tinta-suave); font-weight: 500; }
+.canal-nombre { font-size: clamp(20px, calc(var(--tile) * .085), 32px); font-weight: 700; line-height: 1.1; }
+.canal-dato { font-size: clamp(14px, calc(var(--tile) * .05), 19px); color: var(--tinta-suave); font-weight: 400; }
 .canal-dato b { color: var(--agua-hondo); }
 .insignia {
   position: absolute; top: 9%; right: 9%; z-index: 1;
-  background: var(--espera); color: #fff; font-weight: 800; font-size: 15px;
+  background: var(--espera); color: var(--tinta); font-weight: 700; font-size: 15px;
   border-radius: 999px; padding: 4px 12px; box-shadow: 0 3px 0 rgba(0,0,0,.1);
 }
-.gran-num { font-size: clamp(56px, calc(var(--tile) * .3), 120px); font-weight: 800; color: var(--agua); line-height: .9; }
+.gran-num { font-size: clamp(56px, calc(var(--tile) * .3), 120px); font-weight: 700; color: var(--naranja); line-height: .9; }
 .gran-num small { display: block; font-size: .2em; color: var(--tinta-suave); font-weight: 700; text-align: center; margin-top: 8px; }
-.vistazo .foto-canal { width: 54%; aspect-ratio: 1; border-radius: 30%; box-shadow: 0 6px 0 rgba(14,127,176,.15); }
+.vistazo .foto-canal { width: 54%; aspect-ratio: 1; border-radius: 30%; box-shadow: 0 6px 0 rgba(0,41,63,.12); }
 .vistazo.comunicado { padding: 0; }
 .vistazo.comunicado > svg { width: 100%; height: 100%; max-height: none; }
 
 /* ---------- Vacaciones ---------- */
 #v-vacaciones { display: none; grid-template-columns: 1fr 380px; gap: 26px; }
 #v-vacaciones.on { display: grid; }
-.panel { background: var(--concha); border: 3px solid var(--borde); border-radius: 34px; box-shadow: 0 10px 22px rgba(52,68,79,.06); min-height: 0; }
+.panel { background: var(--concha); border: 3px solid var(--borde); border-radius: 34px; box-shadow: 0 10px 22px rgba(0,41,63,.06); min-height: 0; }
 .cal { padding: 22px 26px 22px; display: grid; grid-template-rows: auto auto 1fr; gap: 14px; }
 .pasos { display: flex; gap: 10px; align-items: center; font-size: 16px; font-weight: 700; color: var(--tinta-suave); flex-wrap: wrap; }
 .paso { display: flex; align-items: center; gap: 8px; }
@@ -239,9 +317,9 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 .paso.hecho i { background: var(--ok); border-color: var(--ok); color: #fff; }
 .paso-linea { width: 28px; height: 3px; border-radius: 2px; background: var(--borde); }
 .cal-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cal-cab h2 { font-size: 34px; font-weight: 800; text-transform: lowercase; }
+.cal-cab h2 { font-size: 34px; font-weight: 700; text-transform: lowercase; }
 .cal-cab h2::first-letter { text-transform: uppercase; }
-.flecha { width: 64px; height: 64px; border-radius: 22px; border: 2px solid var(--borde); background: linear-gradient(#fff, #F1F5F8); display: grid; place-content: center; box-shadow: 0 3px 0 var(--borde); }
+.flecha { width: 64px; height: 64px; border-radius: 22px; border: 2px solid var(--borde); background: linear-gradient(#fff, #F2F3EF); display: grid; place-content: center; box-shadow: 0 3px 0 var(--borde); }
 .flecha svg { width: 30px; height: 30px; }
 .flecha:disabled { opacity: .35; cursor: default; }
 .flecha:not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 var(--borde); }
@@ -259,7 +337,7 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 .dia:not(:disabled):hover { border-color: var(--agua); }
 .dia:disabled { cursor: default; }
 .dia.vacio { background: none; }
-.dia.pasado { color: #B8C4CC; background: none; }
+.dia.pasado { color: #B9BDB8; background: none; }
 .dia.descanso { background: none; color: var(--tinta-suave); }
 .dia.festivo { background: #FFF4DE; }
 .dia.festivo small { color: #B57406; }
@@ -267,18 +345,18 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 .dia.bloqueado small { color: var(--alto); }
 .dia.hoy { border-color: var(--tinta-suave); border-style: dashed; }
 .dia.rango { background: var(--agua-claro); }
-.dia.rango.descanso, .dia.rango.festivo { background: #EEF8FD; }
+.dia.rango.descanso, .dia.rango.festivo { background: #EEF6F8; }
 .dia.extremo { background: var(--agua); color: #fff; box-shadow: 0 4px 0 var(--agua-hondo); }
-.dia.extremo small { color: #E3F6FD; }
+.dia.extremo small { color: #E6F2F5; }
 
 .lado { padding: 24px; display: flex; flex-direction: column; gap: 18px; overflow: auto; }
-.lado h3 { font-size: 20px; font-weight: 800; }
+.lado h3 { font-size: 20px; font-weight: 700; }
 .saldo-num { display: flex; align-items: baseline; gap: 10px; }
-.saldo-num b { font-size: 64px; line-height: 1; color: var(--agua); font-weight: 800; }
+.saldo-num b { font-size: 64px; line-height: 1; color: var(--agua); font-weight: 700; }
 .saldo-num span { font-size: 20px; font-weight: 700; }
 .puntos { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; margin-top: 12px; }
-.puntos i { aspect-ratio: 1; border-radius: 50%; background: var(--agua-claro); border: 2px solid #B9E4F6; }
-.puntos i.usado { background: #E3EAEF; border-color: #D3DDE4; }
+.puntos i { aspect-ratio: 1; border-radius: 50%; background: var(--agua-claro); border: 2px solid #A9D2DC; }
+.puntos i.usado { background: #E7E9E3; border-color: #D6D8D1; }
 .puntos i.elegido { background: var(--agua); border-color: var(--agua-hondo); }
 .puntos i.revision { background: #FCE7C2; border-color: var(--espera); }
 .leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--tinta-suave); margin-top: 10px; }
@@ -286,24 +364,24 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 .leyenda i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
 .nota-saldo { font-size: 15px; color: var(--tinta-suave); }
 .eleccion { background: var(--nube); border-radius: 24px; padding: 18px; display: grid; gap: 4px; }
-.eleccion .grande { font-size: 22px; font-weight: 800; line-height: 1.25; }
+.eleccion .grande { font-size: 22px; font-weight: 700; line-height: 1.25; }
 .eleccion .chico { font-size: 16px; color: var(--tinta-suave); }
 .eleccion.error { background: #FDECEA; }
 .eleccion.error .grande { color: var(--alto); font-size: 19px; }
 .boton {
-  min-height: 76px; border-radius: 26px; font-size: 22px; font-weight: 800; padding: 0 24px;
+  min-height: 76px; border-radius: 26px; font-size: 22px; font-weight: 700; padding: 0 24px;
   background: var(--agua); color: #fff; border: 2px solid var(--agua-hondo); box-shadow: 0 5px 0 var(--agua-hondo);
   display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
   transition: transform .06s, box-shadow .06s;
 }
 .boton:not(:disabled):active { transform: translateY(4px); box-shadow: 0 1px 0 var(--agua-hondo); }
-.boton:disabled { background: #E3EAEF; color: #A9B7C0; border-color: var(--borde); box-shadow: 0 5px 0 var(--borde); cursor: default; }
-.boton.claro { background: linear-gradient(#fff, #F1F5F8); color: var(--tinta); border-color: var(--borde); box-shadow: 0 5px 0 var(--borde); }
+.boton:disabled { background: #E7E9E3; color: #A3A8A6; border-color: var(--borde); box-shadow: 0 5px 0 var(--borde); cursor: default; }
+.boton.claro { background: linear-gradient(#fff, #F2F3EF); color: var(--tinta); border-color: var(--borde); box-shadow: 0 5px 0 var(--borde); }
 .boton svg { width: 28px; height: 28px; }
 .historial { display: grid; gap: 10px; }
 .sol { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 16px; padding: 12px 14px; border-radius: 18px; border: 2px solid var(--nube); }
 .sol b { display: block; font-size: 17px; }
-.estado { font-size: 14px; font-weight: 800; border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+.estado { font-size: 14px; font-weight: 700; border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
 .estado.ok { background: #DDF4E6; color: #1E7D45; }
 .estado.espera { background: #FCEBCB; color: #95600A; }
 .lado .empuje { margin-top: auto; display: grid; gap: 12px; }
@@ -312,7 +390,7 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 .revisar { padding: 34px 40px; display: grid; grid-template-rows: auto 1fr; gap: 24px; }
 .revisar-cuerpo { display: grid; grid-template-columns: 1fr 360px; gap: 40px; align-items: center; }
 .resumen { display: grid; gap: 22px; }
-.resumen h2 { font-size: 40px; font-weight: 800; line-height: 1.15; }
+.resumen h2 { font-size: 40px; font-weight: 700; line-height: 1.15; }
 .renglones { display: grid; gap: 0; border-radius: 26px; background: var(--nube); padding: 6px 24px; }
 .renglon { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; font-size: 20px; border-bottom: 2px solid var(--concha); }
 .renglon:last-child { border-bottom: 0; }
@@ -329,12 +407,130 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 .palomita path { fill: none; stroke: var(--ok); stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 120; stroke-dashoffset: 0; }
 .listo.anim .palomita path { animation: trazo .6s .15s ease-out both; }
 @keyframes trazo { from { stroke-dashoffset: 120; } }
-.listo h2 { font-size: 48px; font-weight: 800; }
+.listo h2 { font-size: 48px; font-weight: 700; }
 .folio { font-size: 22px; color: var(--tinta-suave); }
 .folio b { display: block; font-size: 56px; color: var(--tinta); letter-spacing: .04em; }
 .listo p { font-size: 22px; color: var(--tinta-suave); max-width: 32ch; }
 .listo .acciones { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
 .listo .boton { width: auto; min-width: 280px; }
+
+/* ---------- Pantallas generales ---------- */
+#v-gen { overflow: auto; overscroll-behavior: contain; }
+.dos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 26px; align-items: start; }
+.dos.ancho-der { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+.dos.perfil-dos { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: stretch; }
+.panel-pad { padding: 26px; display: grid; gap: 18px; align-content: start; }
+.sub { font-size: 26px; font-weight: 700; line-height: 1.2; }
+.panel h3 { font-size: 20px; font-weight: 700; }
+.filas { display: grid; gap: 10px; }
+.fila {
+  display: flex; align-items: center; gap: 16px; width: 100%; min-height: 84px; padding: 14px 18px;
+  border-radius: 24px; background: var(--nube); border: 3px solid transparent; text-align: left;
+  transition: border-color .12s, background .12s;
+}
+.fila:hover { border-color: var(--borde); }
+.fila.on { border-color: var(--agua); background: var(--agua-claro); }
+.fila:active { transform: scale(.99); }
+.fila > svg { width: 28px; height: 28px; color: var(--tinta-suave); flex: none; }
+.ic { width: 56px; height: 56px; border-radius: 18px; background: var(--concha); color: var(--agua); display: grid; place-content: center; flex: none; box-shadow: inset 0 0 0 2px var(--agua-claro); }
+.ic svg { width: 34px; height: 34px; }
+.fila .txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.fila .txt b { font-size: 20px; line-height: 1.25; }
+.fila .txt span { font-size: 16px; color: var(--tinta-suave); }
+.fila .txt .tiempo { font-weight: 700; color: var(--ok); }
+.fila .txt .tiempo.rh { color: #95600A; }
+.fila .der { display: grid; justify-items: end; gap: 4px; font-size: 20px; font-weight: 700; }
+.chip-nuevo { font-size: 13px; font-weight: 700; color: var(--tinta); background: var(--espera); border-radius: 999px; padding: 2px 10px; }
+.cabeza-fila { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.boton.chico { min-height: 60px; width: auto; font-size: 18px; padding: 0 22px; border-radius: 20px; }
+.enlace { color: var(--agua-hondo); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* papel: recibos y cartas */
+.papel { background: #fff; border-radius: 16px; padding: 28px 32px; display: grid; gap: 10px; font-size: 18px; box-shadow: 0 0 0 2px var(--nube), 0 16px 30px rgba(0,41,63,.12); }
+.papel h4 { margin: 10px 0 0; font-size: 15px; font-weight: 700; color: var(--tinta-suave); }
+.papel-cab { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 15px; color: var(--tinta-suave); padding-bottom: 10px; border-bottom: 2px dashed var(--borde); }
+.linea { display: flex; justify-content: space-between; gap: 16px; }
+.linea b { font-weight: 700; white-space: nowrap; }
+.linea.total { margin-top: 8px; padding-top: 14px; border-top: 2px dashed var(--borde); font-size: 22px; font-weight: 700; align-items: baseline; }
+.linea.total b { font-size: 30px; color: var(--agua-hondo); font-weight: 700; }
+.monto { transition: filter .2s; }
+.oculto .monto { filter: blur(9px); }
+.carta { font-size: 17px; line-height: 1.6; gap: 14px; }
+.carta p { max-width: 60ch; }
+.carta-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 15px; color: var(--tinta-suave); }
+.logo-hueco { border: 2px dashed var(--borde); border-radius: 12px; padding: 10px 16px; font-size: 14px; }
+.carta-firma { display: grid; justify-items: center; margin-top: 18px; font-size: 15px; color: var(--tinta-suave); text-align: center; }
+.carta-firma span { width: 220px; border-top: 2px solid var(--tinta); margin-bottom: 6px; }
+.carta-firma b { color: var(--tinta); }
+.chiquito { font-size: 14px; color: var(--tinta-suave); }
+
+/* opciones grandes: temas de reporte y accesos */
+.opciones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.opcion {
+  position: relative; display: grid; justify-items: center; align-content: center; gap: 10px; text-align: center;
+  min-height: 168px; padding: 22px 14px; border-radius: 28px; background: linear-gradient(#fff, #F7F8F5);
+  border: 3px solid var(--borde); box-shadow: 0 8px 18px rgba(0,41,63,.07), inset 0 2px 0 #fff;
+  transition: transform .14s, border-color .14s, box-shadow .14s;
+}
+.opcion:hover, .opcion:focus-visible { border-color: var(--naranja); outline: none; box-shadow: 0 0 0 6px var(--naranja-claro); }
+.opcion:active { transform: scale(.97); }
+.opcion .ic { width: 72px; height: 72px; border-radius: 24px; background: var(--agua-claro); box-shadow: none; }
+.opcion .ic svg { width: 42px; height: 42px; }
+.opcion b { font-size: 21px; line-height: 1.2; }
+.opcion > span:not(.ic) { font-size: 16px; color: var(--tinta-suave); }
+.accesos { height: 100%; grid-auto-rows: minmax(200px, 1fr); }
+.accesos .opcion b { font-size: 26px; }
+.accesos .opcion .ic { width: 96px; height: 96px; border-radius: 30px; }
+.accesos .opcion .ic svg { width: 54px; height: 54px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { min-height: 64px; padding: 0 24px; border-radius: 999px; font-size: 19px; font-weight: 700; background: var(--nube); border: 3px solid var(--borde); }
+.chip.on { background: var(--agua); color: #fff; border-color: var(--agua-hondo); }
+.acciones-fila { display: grid; grid-template-columns: auto 1fr; gap: 12px; }
+.panel-pad .listo { padding: 20px 0; }
+.ticket { display: grid; gap: 8px; }
+.hilo { display: grid; gap: 8px; padding: 0 6px 6px 24px; }
+.burbuja { background: var(--nube); border-radius: 6px 22px 22px 22px; padding: 14px 18px; font-size: 17px; display: grid; gap: 4px; }
+.burbuja b { font-size: 14px; color: var(--agua-hondo); }
+
+/* comunicados */
+.avisos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 26px; align-content: start; }
+.tarjeta {
+  position: relative; text-align: left; border-radius: 30px; overflow: hidden; background: var(--concha);
+  border: 3px solid var(--borde); box-shadow: 0 10px 22px rgba(0,41,63,.08); display: grid;
+  transition: transform .14s, border-color .14s, box-shadow .14s;
+}
+.tarjeta:hover, .tarjeta:focus-visible { border-color: var(--naranja); outline: none; transform: translateY(-4px); box-shadow: 0 0 0 7px var(--naranja-claro), 0 18px 30px rgba(245,130,31,.22); }
+.tarjeta .arte { aspect-ratio: 5 / 3; }
+.arte svg { width: 100%; height: 100%; display: block; }
+.tarjeta-pie { padding: 18px 22px 22px; display: grid; gap: 4px; }
+.tarjeta-pie b { font-size: 24px; line-height: 1.2; }
+.tarjeta-pie span { color: var(--tinta-suave); font-size: 17px; }
+.tarjeta .insignia { top: 16px; right: 16px; }
+.comunicado-det { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); overflow: hidden; min-height: 100%; }
+.comunicado-det .arte { min-height: 320px; }
+.det-txt { padding: 40px; display: grid; gap: 18px; align-content: center; justify-items: start; }
+.det-txt h2 { font-size: 44px; font-weight: 700; line-height: 1.1; }
+.det-txt p { font-size: 22px; max-width: 34ch; }
+.fecha-chip { display: inline-block; background: var(--agua-claro); color: var(--agua-hondo); font-weight: 700; border-radius: 999px; padding: 6px 16px; font-size: 16px; }
+
+/* mis datos, solicitudes, ayuda */
+.perfil { padding: 36px; display: grid; justify-items: center; text-align: center; gap: 12px; align-content: center; }
+.foto-grande { width: 220px; height: 220px; border-radius: 64px; box-shadow: 0 8px 0 rgba(0,41,63,.12); margin-bottom: 8px; }
+.perfil h2 { font-size: 32px; font-weight: 700; line-height: 1.15; }
+.perfil p { font-size: 20px; color: var(--tinta-suave); }
+.solicitudes { max-width: 1000px; margin: 0 auto; }
+.resumen-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.resumen-fila div { background: var(--nube); border-radius: 24px; padding: 16px 22px; font-size: 18px; font-weight: 700; color: var(--tinta-suave); display: flex; align-items: baseline; gap: 10px; }
+.resumen-fila b { font-size: 44px; color: var(--tinta); line-height: 1; }
+.faq { display: grid; gap: 10px; }
+.pregunta.on .fila { border-color: var(--agua); background: var(--agua-claro); }
+.respuesta { padding: 12px 22px 8px; font-size: 19px; display: grid; gap: 12px; justify-items: start; }
+.tabla-lft { display: grid; grid-template-columns: auto auto; gap: 6px 28px; background: var(--nube); border-radius: 18px; padding: 14px 20px; font-size: 18px; }
+.contacto { justify-items: start; }
+.contacto p { font-size: 20px; }
+.contacto .renglones { width: 100%; }
+.grande-ic { width: 80px; height: 80px; border-radius: 26px; }
+.grande-ic svg { width: 48px; height: 48px; }
 
 /* ---------- Transición de canal (zoom) y avisos ---------- */
 .zoom { position: fixed; z-index: 50; border-radius: 34px; background: var(--concha); border: 3px solid var(--agua); pointer-events: none; }
@@ -351,7 +547,13 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
   :root { --dock-h: 120px; }
   .screen.on { position: relative; min-height: 100%; }
   .login-cuerpo { grid-template-columns: 1fr; gap: 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .login-texto h1 { font-size: 40px; margin-top: 20px; }
+  .login-texto { padding: 28px 24px; border-radius: 30px; }
+  body.con-fondo .login-cuerpo { align-items: center; padding: 20px 16px; height: auto; }
+  body.con-fondo #s-login { grid-template-rows: auto 104px; }
+  .fondo { background-size: cover; background-position: 20% center; }
+  .fondo::after { opacity: .75; }
+  .logo-oficial { top: 26px; right: 24px; height: 28px; }
+  .login-texto h1 { font-size: 38px; margin-top: 20px; }
   .login-texto p { font-size: 19px; }
   .ayuda-gafete { margin-top: 20px; }
   .teclado-caja { padding: 18px; border-radius: 30px; }
@@ -387,6 +589,18 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
   .dock-esq.der .redondo { right: max(16px, env(safe-area-inset-right, 0px)); }
   .reloj { font-size: 36px; }
   .fecha { font-size: 14px; }
+  #v-gen { overflow: visible; }
+  .dos, .dos.ancho-der, .dos.perfil-dos { grid-template-columns: 1fr; }
+  .opciones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .accesos { height: auto; grid-auto-rows: auto; }
+  .comunicado-det { grid-template-columns: 1fr; }
+  .comunicado-det .arte { min-height: 200px; }
+  .det-txt { padding: 24px; }
+  .det-txt h2 { font-size: 30px; }
+  .det-txt p { font-size: 19px; }
+  .papel { padding: 20px; }
+  .linea.total b { font-size: 24px; }
+  .panel-pad { padding: 18px; }
 }
 @media (max-width: 480px) {
   .dock { grid-template-columns: 112px 1fr 112px; }
@@ -397,6 +611,10 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 </style>
+</head>
+<body>
+<!-- Fondo de marca: maquetas/assets/fondo-visteon.jpg (imagen oficial, no se redibuja) -->
+<div class="fondo" aria-hidden="true"></div>
 
 <!-- Íconos y piezas reutilizables -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -410,8 +628,26 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     <symbol id="i-izq" viewBox="0 0 48 48"><path d="M29 10 15 24l14 14" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-der" viewBox="0 0 48 48"><path d="M19 10l14 14-14 14" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-gafete" viewBox="0 0 48 48"><rect x="8" y="12" width="32" height="28" rx="6" fill="none" stroke="currentColor" stroke-width="4"/><path d="M19 12V7h10v5" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><circle cx="18" cy="25" r="4" fill="currentColor"/><path d="M26 23h8M26 30h8M13 34h10" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></symbol>
-    <symbol id="persona" viewBox="0 0 100 100"><circle cx="50" cy="40" r="19" fill="#FFFFFF" opacity=".92"/><path d="M16 100c2-22 16-34 34-34s32 12 34 34z" fill="#FFFFFF" opacity=".92"/><path d="M31 37c0-14 9-22 20-22 12 0 19 8 19 19-4-5-11-8-19-8-9 0-16 4-20 11z" fill="#0E7FB0" opacity=".55"/></symbol>
-    <symbol id="esquina" viewBox="0 0 240 150" preserveAspectRatio="none"><path d="M0 0H140C196 0 186 44 240 44V150H0Z" fill="#FFFFFF"/><path d="M0 1.5H140C196 1.5 186 45.5 240 45.5" fill="none" stroke="#D9F1FB" stroke-width="3"/></symbol>
+    <symbol id="i-dinero" viewBox="0 0 48 48"><rect x="5" y="12" width="38" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="24" r="5" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="12" cy="24" r="2.2" fill="currentColor"/><circle cx="36" cy="24" r="2.2" fill="currentColor"/></symbol>
+    <symbol id="i-reloj" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="4"/><path d="M24 14v11l7 4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sol" viewBox="0 0 48 48"><circle cx="24" cy="24" r="8" fill="none" stroke="currentColor" stroke-width="4"/><path d="M24 5v5M24 38v5M5 24h5M38 24h5M10.6 10.6l3.5 3.5M33.9 33.9l3.5 3.5M10.6 37.4l3.5-3.5M33.9 14.1l3.5-3.5" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></symbol>
+    <symbol id="i-playera" viewBox="0 0 48 48"><path d="M17 8 6 14l4 9 5-2v19h18V21l5 2 4-9-11-6c-1 3.5-4 5.5-7 5.5S18 11.5 17 8z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 48 48"><path d="M8 14a6 6 0 0 1 6-6h20a6 6 0 0 1 6 6v14a6 6 0 0 1-6 6H22l-9 7v-7.4A6 6 0 0 1 8 28z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><circle cx="17" cy="21" r="2.4" fill="currentColor"/><circle cx="24" cy="21" r="2.4" fill="currentColor"/><circle cx="31" cy="21" r="2.4" fill="currentColor"/></symbol>
+    <symbol id="i-mas" viewBox="0 0 48 48"><circle cx="12" cy="24" r="4" fill="currentColor"/><circle cx="24" cy="24" r="4" fill="currentColor"/><circle cx="36" cy="24" r="4" fill="currentColor"/></symbol>
+    <symbol id="i-signo-mas" viewBox="0 0 48 48"><path d="M24 12v24M12 24h24" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="i-menos" viewBox="0 0 48 48"><path d="M12 24h24" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="i-ojo" viewBox="0 0 48 48"><path d="M4 24s7-12 20-12 20 12 20 12-7 12-20 12S4 24 4 24z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><circle cx="24" cy="24" r="5.5" fill="currentColor"/></symbol>
+    <symbol id="i-ojo-no" viewBox="0 0 48 48"><path d="M4 24s7-12 20-12 20 12 20 12-7 12-20 12S4 24 4 24z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M9 39 39 9" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></symbol>
+    <symbol id="i-impresora" viewBox="0 0 48 48"><path d="M14 18V7h20v11" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><rect x="6" y="18" width="36" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="4"/><rect x="14" y="28" width="20" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 48 48"><path d="M12 6h16l9 9v24a3 3 0 0 1-3 3H12a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M17 24h14M17 31h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></symbol>
+    <symbol id="i-moneda" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="4"/><path d="M29 17.5c-2-2.2-10-2.4-10 2.6 0 5.6 11 3.2 11 8.6 0 5-8.2 4.8-11 2.2M24 12v24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-plato" viewBox="0 0 48 48"><circle cx="28" cy="26" r="15" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="28" cy="26" r="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M6 8v32M2.5 8v8a3.5 3.5 0 0 0 7 0V8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-libro" viewBox="0 0 48 48"><path d="M6 10h12a6 6 0 0 1 6 6v24a5 5 0 0 0-5-5H6zM42 10H30a6 6 0 0 0-6 6v24a5 5 0 0 1 5-5h13z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-birrete" viewBox="0 0 48 48"><path d="M3 18 24 9l21 9-21 9z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M12 23v9c0 3 5.5 6 12 6s12-3 12-6v-9M45 18v10" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></symbol>
+    <symbol id="i-maleta" viewBox="0 0 48 48"><rect x="5" y="15" width="38" height="26" rx="6" fill="none" stroke="currentColor" stroke-width="4"/><path d="M17 15v-4a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4M5 26h38" fill="none" stroke="currentColor" stroke-width="4"/></symbol>
+    <symbol id="i-buzon" viewBox="0 0 48 48"><path d="M16 14h18a9 9 0 0 1 9 9v15H7V23a9 9 0 0 1 9-9zM16 14a9 9 0 0 1 9 9v15" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M32 14V6h7" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="persona" viewBox="0 0 100 100"><circle cx="50" cy="40" r="19" fill="#FFFFFF" opacity=".92"/><path d="M16 100c2-22 16-34 34-34s32 12 34 34z" fill="#FFFFFF" opacity=".92"/><path d="M31 37c0-14 9-22 20-22 12 0 19 8 19 19-4-5-11-8-19-8-9 0-16 4-20 11z" fill="#00293F" opacity=".55"/></symbol>
+    <symbol id="esquina" viewBox="0 0 240 150" preserveAspectRatio="none"><path d="M0 0H140C196 0 186 44 240 44V150H0Z" fill="#FFFFFF"/><path d="M0 1.5H140C196 1.5 186 45.5 240 45.5" fill="none" stroke="#DDEEF2" stroke-width="3"/></symbol>
   </defs>
 </svg>
 
@@ -421,7 +657,9 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
   <section class="screen" id="s-login" aria-label="Entrar">
     <div class="login-cuerpo">
       <div class="login-texto">
-        <div class="marca"><span class="marca-sello">RH</span>Kiosko RH</div>
+        <!-- Logo oficial: coloca la versión en blanco (reversa) que entregue Comunicación en maquetas/assets/visteon-logo.svg -->
+        <img class="logo-oficial" src="assets/visteon-logo.svg" alt="Visteon" onerror="this.remove()">
+        <div class="marca"><span class="marca-sello">RH</span><span>Kiosko RH<small>Visteon</small></span></div>
         <h1 id="login-titulo">Hola. ¿Cuál es tu número de empleado?</h1>
         <p id="login-sub">Escríbelo con el teclado de la pantalla.</p>
         <div class="login-quien" id="login-quien" hidden>
@@ -435,7 +673,7 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
         <div class="casillas num" id="casillas"></div>
         <p class="error-txt" id="login-error" role="alert"></p>
         <div class="teclado" id="teclado-login"></div>
-        <p class="demo-nota">Maqueta: cualquier número y PIN funcionan.</p>
+        <p class="demo-nota">Maqueta: cualquier número y PIN funcionan. <a href="admin.html" style="color:inherit;font-weight:700">Ver panel de administración</a></p>
       </div>
     </div>
     <div class="dock">
@@ -449,11 +687,11 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
   <section class="screen" id="s-app" aria-label="Kiosko">
     <nav class="rail" aria-label="Más opciones">
       <span class="marca-sello" aria-hidden="true">RH</span>
-      <button class="rail-btn" data-pronto="Mis solicitudes"><svg><use href="#i-lista"/></svg>Mis solicitudes</button>
-      <button class="rail-btn" data-pronto="Accesos directos"><svg><use href="#i-enlace"/></svg>Accesos directos</button>
-      <button class="rail-btn" data-pronto="Ayuda"><svg><use href="#i-ayuda"/></svg>Ayuda</button>
+      <button class="rail-btn" data-ir="solicitudes"><svg><use href="#i-lista"/></svg>Mis solicitudes</button>
+      <button class="rail-btn" data-ir="accesos"><svg><use href="#i-enlace"/></svg>Accesos directos</button>
+      <button class="rail-btn" data-ir="ayuda"><svg><use href="#i-ayuda"/></svg>Ayuda</button>
       <div class="sesion" aria-live="off">
-        <svg viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="#E3EAEF" stroke-width="7"/><circle id="anillo" cx="31" cy="31" r="26" fill="none" stroke="#1FA6DB" stroke-width="7" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="0"/></svg>
+        <svg viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="#E7E9E3" stroke-width="7"/><circle id="anillo" cx="31" cy="31" r="26" fill="none" stroke="#006283" stroke-width="7" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="0"/></svg>
         <span class="t num" id="sesion-t">2:00</span>
         <span>para cerrar<br>tu sesión</span>
       </div>
@@ -461,7 +699,7 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 
     <header class="top">
       <h1 class="saludo" id="titulo-vista">Buenos días, María<small>¿Qué quieres hacer hoy?</small></h1>
-      <button class="yo" data-pronto="Mis datos">
+      <button class="yo" data-ir="datos">
         <span class="foto"><svg viewBox="0 0 100 100"><use href="#persona"/></svg></span>
         <span><b>María Guadalupe Hernández</b><span class="num">No. 004218</span></span>
       </button>
@@ -476,40 +714,40 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
             <div class="canal-pie"><span class="canal-nombre">Pedir vacaciones</span><span class="canal-dato" id="canal-vac-dato">De 16 que te tocan este año</span></div>
           </button>
 
-          <button class="canal" data-pronto="Mis recibos de nómina">
+          <button class="canal" data-ir="recibos">
             <span class="insignia">Nuevo</span>
-            <div class="vistazo"><svg viewBox="0 0 120 120"><path d="M28 14h64v92l-8-6-8 6-8-6-8 6-8-6-8 6-8-6-8 6z" fill="#D9F1FB" stroke="#1FA6DB" stroke-width="5" stroke-linejoin="round"/><path d="M42 36h36M42 50h36M42 64h20" stroke="#1FA6DB" stroke-width="5" stroke-linecap="round"/><circle cx="76" cy="76" r="16" fill="#1FA6DB"/><path d="M80 69c-2-2-9-2-9 2.5 0 5 10 3 10 8 0 4.5-7 4.5-10 2M76 66v20" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg></div>
-            <div class="canal-pie"><span class="canal-nombre">Mis recibos</span><span class="canal-dato">Ya está tu <b>quincena 22</b></span></div>
+            <div class="vistazo"><svg viewBox="0 0 120 120"><path d="M28 14h64v92l-8-6-8 6-8-6-8 6-8-6-8 6-8-6-8 6z" fill="#FFFFFF" stroke="#006283" stroke-width="5" stroke-linejoin="round"/><path d="M42 36h36M42 50h36M42 64h20" stroke="#006283" stroke-width="5" stroke-linecap="round"/><circle cx="76" cy="76" r="16" fill="#F5821F"/><path d="M80 69c-2-2-9-2-9 2.5 0 5 10 3 10 8 0 4.5-7 4.5-10 2M76 66v20" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg></div>
+            <div class="canal-pie"><span class="canal-nombre">Mis recibos</span><span class="canal-dato">Ya está tu <b>quincena 21</b></span></div>
           </button>
 
-          <button class="canal" data-pronto="Constancias y cartas">
-            <div class="vistazo"><svg viewBox="0 0 120 120"><rect x="24" y="12" width="66" height="88" rx="10" fill="#D9F1FB" stroke="#1FA6DB" stroke-width="5"/><path d="M38 32h38M38 45h38M38 58h24" stroke="#1FA6DB" stroke-width="5" stroke-linecap="round"/><circle cx="82" cy="86" r="20" fill="#fff" stroke="#1FA6DB" stroke-width="5"/><path d="m73 86 6 6 11-12" fill="none" stroke="#1FA6DB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <button class="canal" data-ir="cartas">
+            <div class="vistazo"><svg viewBox="0 0 120 120"><rect x="24" y="12" width="66" height="88" rx="10" fill="#FFFFFF" stroke="#006283" stroke-width="5"/><path d="M38 32h38M38 45h38M38 58h24" stroke="#006283" stroke-width="5" stroke-linecap="round"/><circle cx="82" cy="86" r="20" fill="#fff" stroke="#006283" stroke-width="5"/><path d="m73 86 6 6 11-12" fill="none" stroke="#006283" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="canal-pie"><span class="canal-nombre">Cartas y constancias</span><span class="canal-dato">Te la damos al momento</span></div>
           </button>
 
-          <button class="canal" data-pronto="Reportar un problema">
-            <span class="insignia">1 en revisión</span>
-            <div class="vistazo"><svg viewBox="0 0 120 120"><path d="M20 26a12 12 0 0 1 12-12h56a12 12 0 0 1 12 12v40a12 12 0 0 1-12 12H56L36 96V78h-4a12 12 0 0 1-12-12z" fill="#D9F1FB" stroke="#1FA6DB" stroke-width="5" stroke-linejoin="round"/><path d="M60 32v20" stroke="#1FA6DB" stroke-width="7" stroke-linecap="round"/><circle cx="60" cy="64" r="4.5" fill="#1FA6DB"/></svg></div>
+          <button class="canal" data-ir="problema">
+            <span class="insignia" id="canal-prob-ins">1 en revisión</span>
+            <div class="vistazo"><svg viewBox="0 0 120 120"><path d="M20 26a12 12 0 0 1 12-12h56a12 12 0 0 1 12 12v40a12 12 0 0 1-12 12H56L36 96V78h-4a12 12 0 0 1-12-12z" fill="#FFFFFF" stroke="#006283" stroke-width="5" stroke-linejoin="round"/><path d="M60 32v20" stroke="#F5821F" stroke-width="7" stroke-linecap="round"/><circle cx="60" cy="64" r="4.5" fill="#F5821F"/></svg></div>
             <div class="canal-pie"><span class="canal-nombre">Reportar un problema</span><span class="canal-dato">Pago, checadas, uniforme…</span></div>
           </button>
 
-          <button class="canal" data-pronto="Comunicados">
+          <button class="canal" data-ir="comunicados">
             <div class="vistazo comunicado" aria-hidden="true">
               <svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice">
-                <rect width="200" height="150" fill="#1FA6DB"/>
+                <rect width="200" height="150" fill="#006283"/>
                 <path d="M0 14 Q100 34 200 14" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/>
                 <g>
-                  <path d="M8 16h22v22l-11 7-11-7z" fill="#F06A9B"/><path d="M36 20h22v22l-11 7-11-7z" fill="#FFD23F"/><path d="M64 23h22v22l-11 7-11-7z" fill="#7BDA8E"/><path d="M92 24h22v22l-11 7-11-7z" fill="#FF8A3D"/><path d="M120 23h22v22l-11 7-11-7z" fill="#B48CF2"/><path d="M148 20h22v22l-11 7-11-7z" fill="#F06A9B"/><path d="M176 16h22v22l-11 7-11-7z" fill="#FFD23F"/>
+                  <path d="M8 16h22v22l-11 7-11-7z" fill="#F5821F"/><path d="M36 20h22v22l-11 7-11-7z" fill="#FAA519"/><path d="M64 23h22v22l-11 7-11-7z" fill="#BED62F"/><path d="M92 24h22v22l-11 7-11-7z" fill="#FFFFFF"/><path d="M120 23h22v22l-11 7-11-7z" fill="#FFFFFF"/><path d="M148 20h22v22l-11 7-11-7z" fill="#F5821F"/><path d="M176 16h22v22l-11 7-11-7z" fill="#FAA519"/>
                 </g>
-                <g fill="#1FA6DB"><circle cx="19" cy="28" r="3"/><circle cx="47" cy="32" r="3"/><circle cx="75" cy="35" r="3"/><circle cx="103" cy="36" r="3"/><circle cx="131" cy="35" r="3"/><circle cx="159" cy="32" r="3"/><circle cx="187" cy="28" r="3"/></g>
-                <text x="100" y="92" text-anchor="middle" fill="#fff" font-family="M PLUS Rounded 1c, sans-serif" font-weight="800" font-size="25">Posada navideña</text>
-                <text x="100" y="114" text-anchor="middle" fill="#E3F6FD" font-family="M PLUS Rounded 1c, sans-serif" font-weight="700" font-size="13">Viernes 18 de diciembre, comedor</text>
+                <g fill="#006283"><circle cx="19" cy="28" r="3"/><circle cx="47" cy="32" r="3"/><circle cx="75" cy="35" r="3"/><circle cx="103" cy="36" r="3"/><circle cx="131" cy="35" r="3"/><circle cx="159" cy="32" r="3"/><circle cx="187" cy="28" r="3"/></g>
+                <text x="100" y="92" text-anchor="middle" fill="#fff" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="25">Posada navideña</text>
+                <text x="100" y="114" text-anchor="middle" fill="#E6F2F5" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="13">Viernes 18 de diciembre, comedor</text>
               </svg>
             </div>
-            <div class="canal-pie" style="padding-top:5%"><span class="canal-nombre">Comunicados</span><span class="canal-dato">3 nuevos esta semana</span></div>
+            <div class="canal-pie" style="padding-top:5%"><span class="canal-nombre">Comunicados</span><span class="canal-dato" id="canal-com-dato">3 nuevos para ti</span></div>
           </button>
 
-          <button class="canal" data-pronto="Mis datos">
+          <button class="canal" data-ir="datos">
             <div class="vistazo"><span class="foto foto-canal"><svg viewBox="0 0 100 100"><use href="#persona"/></svg></span></div>
             <div class="canal-pie"><span class="canal-nombre">Mis datos</span><span class="canal-dato">Puesto, turno, antigüedad</span></div>
           </button>
@@ -518,6 +756,9 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
 
       <!-- Vacaciones -->
       <div class="vista" id="v-vacaciones"></div>
+
+      <!-- Recibos, cartas, reportes, comunicados, datos, solicitudes, accesos, ayuda -->
+      <div class="vista" id="v-gen"></div>
     </main>
 
     <div class="dock" style="grid-area: dock">
@@ -564,6 +805,11 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     $$("[data-fecha]").forEach(e => e.textContent = f.charAt(0).toUpperCase() + f.slice(1));
   }
   reloj(); setInterval(reloj, 15000);
+
+  // Fondo de marca: si la imagen no carga, se queda el fondo de rayas
+  const fondo = new Image();
+  fondo.onload = () => document.body.classList.add("con-fondo");
+  fondo.src = "assets/fondo-visteon.jpg";
 
   // ---------- Aviso ----------
   let avisoT;
@@ -650,23 +896,33 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     const m = Math.floor(st.restante / 60), s = String(st.restante % 60).padStart(2, "0");
     $("#sesion-t").textContent = `${m}:${s}`;
     $("#anillo").style.strokeDashoffset = 163.4 * (1 - st.restante / SESION_SEG);
-    $("#anillo").style.stroke = st.restante <= 20 ? "#E0524A" : "#1FA6DB";
+    $("#anillo").style.stroke = st.restante <= 20 ? "#D64541" : "#006283";
   }, 1000);
   ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, () => {
-    if (st.logged) { st.restante = SESION_SEG; $("#sesion-t").textContent = "2:00"; $("#anillo").style.strokeDashoffset = 0; $("#anillo").style.stroke = "#1FA6DB"; }
+    if (st.logged) { st.restante = SESION_SEG; $("#sesion-t").textContent = "2:00"; $("#anillo").style.strokeDashoffset = 0; $("#anillo").style.stroke = "#006283"; }
   }));
 
   // ---------- Router ----------
   function ruta() {
     const r = (location.hash || "#login").slice(1);
     if (r !== "login" && !st.logged) { st.logged = true; st.restante = SESION_SEG; }   // demo: entrar directo por enlace
+    document.body.classList.toggle("en-app", r !== "login");
     $("#s-login").classList.toggle("on", r === "login");
     $("#s-app").classList.toggle("on", r !== "login");
     if (r === "login") { pintarLogin(); return; }
-    $("#v-inicio").classList.toggle("on", r === "inicio");
+    const gen = PANTALLAS[r];
+    $("#v-inicio").classList.toggle("on", !gen && r !== "vacaciones");
     $("#v-vacaciones").classList.toggle("on", r === "vacaciones");
+    $("#v-gen").classList.toggle("on", !!gen);
+    $$(".rail-btn").forEach(b => b.classList.toggle("on", b.dataset.ir === r));
     const tit = $("#titulo-vista");
     if (r === "vacaciones") { tit.innerHTML = "Pedir vacaciones<small>Elige tus días en el calendario</small>"; pintarVac(); }
+    else if (gen) {
+      tit.innerHTML = `${gen.t}<small>${gen.s}</small>`;
+      gen.entrar?.();
+      gen.pintar($("#v-gen"));
+      $("#v-gen").scrollTop = 0;
+    }
     else { tit.innerHTML = `${saludo()}, María<small>¿Qué quieres hacer hoy?</small>`; pintarCanales(); }
   }
   function saludo() { const h = new Date().getHours(); return h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches"; }
@@ -687,7 +943,8 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     };
   }
   document.addEventListener("click", e => {
-    const ir = e.target.closest("[data-ir]"); if (ir) return abrir(ir, ir.dataset.ir);
+    const ir = e.target.closest("[data-ir]");
+    if (ir) { if (ir.dataset.cat) st.prob = nuevoProb(2, ir.dataset.cat); return abrir(ir, ir.dataset.ir); }
     const p = e.target.closest("[data-pronto]"); if (p) aviso(`"${p.dataset.pronto}" llega en la siguiente maqueta.`);
   });
   $("#btn-inicio").addEventListener("click", () => { st.vStep = st.vStep === "enviada" ? "elegir" : st.vStep; location.hash = "#inicio"; });
@@ -698,6 +955,10 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     $("#canal-vac-dato").innerHTML = st.enviada
       ? `<b>${rangoCorto(st.enviada.ini, st.enviada.fin)}</b> en revisión`
       : `De ${TOTAL_ANIO} que te tocan este año`;
+    const nuevos = COMUNICADOS.filter(c => !st.leidos.has(c.id)).length;
+    $("#canal-com-dato").textContent = nuevos ? `${nuevos} ${nuevos === 1 ? "nuevo" : "nuevos"} para ti` : "Ya los viste todos";
+    const abiertos = st.tickets.filter(t => t.estado === "espera").length;
+    const ins = $("#canal-prob-ins"); ins.hidden = !abiertos; ins.textContent = `${abiertos} en revisión`;
   }
 
   // ---------- Vacaciones ----------
@@ -730,8 +991,7 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     return mesA === mesB ? `${a.getDate()}–${b.getDate()} ${mesB}` : `${a.getDate()} ${mesA}–${b.getDate()} ${mesB}`;
   }
 
-  function pasos(actual) {
-    const nombres = ["Elige tus días", "Revisa y firma", "Listo"];
+  function pasos(actual, nombres = ["Elige tus días", "Revisa y firma", "Listo"]) {
     return `<div class="pasos">${nombres.map((n, i) => {
       const cls = i + 1 < actual ? "hecho" : i + 1 === actual ? "on" : "";
       return `${i ? '<span class="paso-linea"></span>' : ""}<span class="paso ${cls}"><i>${i + 1 < actual ? "✓" : i + 1}</i>${n}</span>`;
@@ -808,7 +1068,7 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
           <h3>Tus días este año</h3>
           <div class="saldo-num num"><b>${disp - elegidos}</b><span>${sel && valido ? "te quedarían" : "te quedan"}</span></div>
           <div class="puntos">${puntos}</div>
-          <div class="leyenda"><span><i style="background:#E3EAEF"></i>Usados</span><span><i style="background:#1FA6DB"></i>Elegidos</span><span><i style="background:#D9F1FB;border:2px solid #B9E4F6"></i>Libres</span></div>
+          <div class="leyenda"><span><i style="background:#E7E9E3"></i>Usados</span><span><i style="background:#006283"></i>Elegidos</span><span><i style="background:#DDEEF2;border:2px solid #A9D2DC"></i>Libres</span></div>
         </div>
         ${caja}
         <div class="historial">
@@ -892,6 +1152,368 @@ main { grid-area: main; position: relative; min-height: 0; padding-right: max(36
     $("#fin-salir", v).addEventListener("click", () => salir("Listo. Cerraste tu sesión."));
   }
 
+  // =========================================================
+  // Recibos, cartas, reportes, comunicados, datos, solicitudes,
+  // accesos directos y ayuda. Todos los datos son de ejemplo.
+  // =========================================================
+  const dinero = n => n.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
+  const suma = a => a.reduce((t, x) => t + x[1], 0);
+  const ico = id => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
+  const cerca = (e, sel) => e.target.closest(sel);
+  const palomita = `<svg class="palomita" viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="75" r="72"/><path d="M45 78l20 20 42-44"/></svg>`;
+
+  // ---- Mis recibos ----
+  const RECIBOS = [
+    { q: 21, del: "1 al 15 de noviembre", pago: "13 nov", nuevo: true,
+      perc: [["Sueldo, 15 días", 6300], ["Tiempo extra doble, 4 horas", 420], ["Premio de asistencia", 630], ["Premio de puntualidad", 630]],
+      ded: [["ISR", 520.30], ["IMSS", 168.45], ["Fondo de ahorro", 315]] },
+    { q: 20, del: "16 al 31 de octubre", pago: "30 oct",
+      perc: [["Sueldo, 16 días", 6720], ["Premio de asistencia", 672], ["Premio de puntualidad", 672]],
+      ded: [["ISR", 548.10], ["IMSS", 179.68], ["Fondo de ahorro", 336]] },
+    { q: 19, del: "1 al 15 de octubre", pago: "15 oct",
+      perc: [["Sueldo, 14 días (1 falta)", 5880], ["Premio de puntualidad", 588]],
+      ded: [["ISR", 410.22], ["IMSS", 157.22], ["Fondo de ahorro", 294]] },
+    { q: 18, del: "16 al 30 de septiembre", pago: "30 sep",
+      perc: [["Sueldo, 15 días", 6300], ["Premio de asistencia", 630], ["Premio de puntualidad", 630]],
+      ded: [["ISR", 492.65], ["IMSS", 168.45], ["Fondo de ahorro", 315]] },
+    { q: 17, del: "1 al 15 de septiembre", pago: "15 sep",
+      perc: [["Sueldo, 15 días", 6300], ["Prima vacacional, 4 días", 420], ["Premio de asistencia", 630], ["Premio de puntualidad", 630]],
+      ded: [["ISR", 520.30], ["IMSS", 168.45], ["Fondo de ahorro", 315]] },
+  ];
+  const neto = r => suma(r.perc) - suma(r.ded);
+  st.recibo = 0; st.montos = false;
+
+  function pRecibos(v) {
+    const r = RECIBOS[st.recibo];
+    const lineas = a => a.map(([n, m]) => `<div class="linea"><span>${n}</span><b class="num monto">${dinero(m)}</b></div>`).join("");
+    v.innerHTML = `<div class="dos ${st.montos ? "" : "oculto"}">
+      <section class="panel panel-pad">
+        <h2 class="sub">Tus quincenas</h2>
+        <div class="filas">${RECIBOS.map((x, i) => `
+          <button class="fila ${i === st.recibo ? "on" : ""}" data-recibo="${i}">
+            <span class="ic">${ico("i-doc")}</span>
+            <span class="txt"><b>Quincena ${x.q}</b><span>Del ${x.del}</span></span>
+            <span class="der num"><span class="monto">${dinero(neto(x))}</span>${x.nuevo ? '<span class="chip-nuevo">Nuevo</span>' : ""}</span>
+          </button>`).join("")}</div>
+        <p class="nota-saldo">Aquí ves las últimas 5 quincenas. Los recibos más viejos los pides en RH.</p>
+      </section>
+      <section class="panel panel-pad">
+        <div class="cabeza-fila">
+          <h2 class="sub">Quincena ${r.q}</h2>
+          <button class="boton claro chico" id="ver-montos">${ico(st.montos ? "i-ojo-no" : "i-ojo")}${st.montos ? "Tapar cantidades" : "Ver cantidades"}</button>
+        </div>
+        <div class="papel">
+          <div class="papel-cab"><span>Del ${r.del}</span><span>Pagado el ${r.pago}</span></div>
+          <h4>Lo que ganaste</h4>${lineas(r.perc)}
+          <h4>Lo que se descontó</h4>${lineas(r.ded)}
+          <div class="linea total"><span>Te depositamos</span><b class="num monto">${dinero(neto(r))}</b></div>
+        </div>
+        ${st.montos ? "" : '<p class="nota-saldo">Las cantidades están tapadas para que nadie más las vea. Toca "Ver cantidades".</p>'}
+        <button class="boton" id="imprimir-recibo">${ico("i-impresora")}Imprimir recibo</button>
+      </section>
+    </div>`;
+    v.onclick = e => {
+      const b = cerca(e, "[data-recibo]");
+      if (b) { st.recibo = +b.dataset.recibo; RECIBOS[st.recibo].nuevo = false; return pRecibos(v); }
+      if (cerca(e, "#ver-montos")) { st.montos = !st.montos; return pRecibos(v); }
+      if (cerca(e, "#imprimir-recibo")) aviso("Maqueta: aquí sale impreso en la impresora del kiosco.");
+    };
+  }
+
+  // ---- Cartas y constancias ----
+  const CARTAS = [
+    { id: "trabajo", n: "Carta de trabajo", d: "Para el banco, una renta o la escuela", t: "Sale al momento", ic: "i-doc" },
+    { id: "sueldo", n: "Carta con sueldo", d: "Como la de trabajo, con tu salario diario", t: "RH la revisa. Lista en 1 día hábil", ic: "i-dinero", rh: true },
+    { id: "retenciones", n: "Constancia de retenciones 2025", d: "Para tu declaración anual ante el SAT", t: "Sale al momento", ic: "i-moneda" },
+  ];
+  st.carta = "trabajo"; st.cartas = [];
+
+  function textoCarta(id) {
+    const fecha = fmt(HOY, { day: "numeric", month: "long", year: "numeric" });
+    const cab = `<div class="carta-cab"><span class="logo-hueco">Logo de la empresa</span><span>${fecha}</span></div>`;
+    const firma = `<div class="carta-firma"><span></span><b>Laura Méndez Ortiz</b>Recursos Humanos</div>`;
+    if (id === "retenciones") return cab + `
+      <h4>Constancia de sueldos y retenciones, ejercicio 2025</h4>
+      <p>María Guadalupe Hernández Ruiz. RFC HERG••••••••</p>
+      <div class="linea"><span>Ingresos del año</span><b class="num">${dinero(158940)}</b></div>
+      <div class="linea"><span>Ingresos exentos</span><b class="num">${dinero(9412)}</b></div>
+      <div class="linea"><span>ISR que se te retuvo</span><b class="num">${dinero(10875.40)}</b></div>
+      <p class="chiquito">Se imprime con el sello digital de la empresa.</p>` + firma;
+    const sueldo = id === "sueldo" ? `, con un salario diario de <b>$420.00</b> (cuatrocientos veinte pesos 00/100 M.N.)` : "";
+    return cab + `
+      <p>A quien corresponda:</p>
+      <p>Hacemos constar que <b>María Guadalupe Hernández Ruiz</b>, con número de empleado 004218, trabaja en esta empresa desde el <b>14 de marzo de 2023</b> como <b>Operadora de ensamble</b> en el turno matutino, con contrato por tiempo indeterminado${sueldo}.</p>
+      <p>Se extiende la presente a petición de la interesada, para los fines que le convengan.</p>` + firma;
+  }
+
+  function pCartas(v) {
+    const c = CARTAS.find(x => x.id === st.carta);
+    const pedida = st.cartas.find(x => x.id === c.id);
+    const accion = !c.rh
+      ? `<button class="boton" id="imprimir-carta">${ico("i-impresora")}Imprimir</button>`
+      : pedida
+        ? `<div class="eleccion"><span class="grande">Ya la pediste. Folio ${pedida.folio}</span><span class="chico">Pásala a recoger a RH mañana después de las 12:00.</span></div>`
+        : `<button class="boton" id="pedir-carta">${ico("i-chat")}Pedírsela a RH</button>`;
+    v.innerHTML = `<div class="dos">
+      <section class="panel panel-pad">
+        <h2 class="sub">¿Cuál necesitas?</h2>
+        <div class="filas">${CARTAS.map(x => `
+          <button class="fila ${x.id === c.id ? "on" : ""}" data-carta="${x.id}">
+            <span class="ic">${ico(x.ic)}</span>
+            <span class="txt"><b>${x.n}</b><span>${x.d}</span><span class="tiempo ${x.rh ? "rh" : ""}">${x.t}</span></span>
+          </button>`).join("")}</div>
+      </section>
+      <section class="panel panel-pad">
+        <div class="papel carta">${textoCarta(c.id)}</div>
+        <p class="nota-saldo">¿Algún dato está mal? No la imprimas: <button class="enlace" data-ir="problema" data-cat="datos">avísale a RH</button>.</p>
+        ${accion}
+      </section>
+    </div>`;
+    v.onclick = e => {
+      const b = cerca(e, "[data-carta]");
+      if (b) { st.carta = b.dataset.carta; return pCartas(v); }
+      if (cerca(e, "#imprimir-carta")) aviso("Maqueta: aquí sale impresa en la impresora del kiosco.");
+      if (cerca(e, "#pedir-carta")) { st.cartas.push({ id: c.id, n: c.n, folio: "CAR-0" + (400 + Math.floor(Math.random() * 90)) }); pCartas(v); }
+    };
+  }
+
+  // ---- Reportar un problema (árbol de decisiones, sin IA) ----
+  const TEMAS = [
+    { id: "pago", n: "Mi pago", ic: "i-dinero", subs: ["Me pagaron de menos", "No me llegó el depósito", "No entiendo un descuento", "Me falta tiempo extra"] },
+    { id: "checadas", n: "Mis checadas", ic: "i-reloj", subs: ["Me falta una checada", "Checó mal la hora", "Me pusieron falta y sí vine"] },
+    { id: "vacaciones", n: "Vacaciones", ic: "i-sol", subs: ["Mi saldo de días está mal", "Mi solicitud no avanza", "Quiero cancelar una solicitud"] },
+    { id: "uniforme", n: "Uniforme y equipo", ic: "i-playera", subs: ["Necesito uniforme nuevo", "Necesito zapatos de seguridad", "Perdí mi gafete"] },
+    { id: "datos", n: "Mis datos", ic: "i-gafete", subs: ["Mi nombre está mal escrito", "Cambié de domicilio", "Cambié de cuenta de banco"] },
+    { id: "otro", n: "Otra cosa", ic: "i-mas", subs: ["Quiero hablar con alguien de RH"] },
+  ];
+  const PASOS_P = ["Tema", "Qué pasó", "Revisa y envía"];
+  const CUANDO = ["Esta quincena", "La quincena pasada", "Antes"];
+  const CON_FECHA = ["pago", "checadas", "vacaciones"];
+  function nuevoProb(paso = 1, cat = null) { return { paso, cat, sub: null, cuando: null, folio: null }; }
+  st.prob = nuevoProb();
+  st.tickets = [{
+    folio: "TKT-0871", t: "Me falta una checada", fecha: "13 nov", estado: "espera",
+    resp: [{ de: "Laura, de RH", txt: "Ya lo revisé con tu supervisor. La checada se corrige y el pago sale en la quincena 22." }],
+  }];
+  st.ticketAbierto = "TKT-0871";
+
+  function pProblema(v) {
+    const p = st.prob, tema = TEMAS.find(t => t.id === p.cat);
+    let izq;
+    if (p.paso === 1) izq = `${pasos(1, PASOS_P)}
+      <h2 class="sub">¿De qué se trata?</h2>
+      <div class="opciones">${TEMAS.map(t => `<button class="opcion" data-tema="${t.id}"><span class="ic">${ico(t.ic)}</span><b>${t.n}</b></button>`).join("")}</div>`;
+    else if (p.paso === 2) izq = `${pasos(2, PASOS_P)}
+      <h2 class="sub">${tema.n}: ¿qué pasó?</h2>
+      <div class="filas">${tema.subs.map(s => `<button class="fila" data-sub="${s}"><span class="txt"><b>${s}</b></span>${ico("i-der")}</button>`).join("")}</div>
+      <button class="boton claro chico" data-paso="1">${ico("i-izq")}Cambiar de tema</button>`;
+    else if (p.paso === 3 && p.sub === "Cambié de cuenta de banco") izq = `${pasos(3, PASOS_P)}
+      <div class="eleccion error"><span class="grande">Por seguridad, la cuenta de banco se cambia en persona.</span>
+      <span class="chico">Lleva a RH tu estado de cuenta y tu INE. Así nadie puede cambiarla por ti desde un kiosco.</span></div>
+      <button class="boton claro chico" data-paso="2">${ico("i-izq")}Elegir otra cosa</button>`;
+    else if (p.paso === 3) {
+      const pide = CON_FECHA.includes(p.cat);
+      izq = `${pasos(3, PASOS_P)}
+      <h2 class="sub">Revisa tu reporte</h2>
+      <div class="renglones"><div class="renglon"><span>Tema</span><b>${tema.n}</b></div><div class="renglon"><span>Qué pasó</span><b>${p.sub}</b></div></div>
+      ${pide ? `<h3>¿Cuándo pasó?</h3><div class="chips">${CUANDO.map(c => `<button class="chip ${p.cuando === c ? "on" : ""}" data-cuando="${c}">${c}</button>`).join("")}</div>` : ""}
+      <div class="acciones-fila">
+        <button class="boton claro" data-paso="2">${ico("i-izq")}Atrás</button>
+        <button class="boton" id="enviar-rep" ${pide && !p.cuando ? "disabled" : ""}>Enviar a RH</button>
+      </div>`;
+    } else izq = `<div class="listo anim">${palomita}
+      <h2>Tu reporte se envió</h2>
+      <div class="folio">Folio<b class="num">${p.folio}</b></div>
+      <p>RH te contesta aquí mismo, casi siempre en 2 días hábiles.</p>
+      <div class="acciones"><button class="boton claro" id="otro-rep">Hacer otro reporte</button></div></div>`;
+
+    const der = `<h2 class="sub">Tus reportes</h2><div class="filas">${st.tickets.map(t => {
+      const abierto = st.ticketAbierto === t.folio;
+      const hilo = t.resp.length
+        ? t.resp.map(r => `<div class="burbuja"><b>${r.de}</b>${r.txt}</div>`).join("")
+        : `<p class="nota-saldo">Todavía no hay respuesta.</p>`;
+      return `<div class="ticket">
+        <button class="fila ${abierto ? "on" : ""}" data-ticket="${t.folio}" aria-expanded="${abierto}">
+          <span class="txt"><b>${t.t}</b><span>${t.folio}, enviado el ${t.fecha}</span></span>
+          <span class="estado ${t.estado}">${t.estado === "ok" ? "Resuelto" : "En revisión"}</span>
+        </button>
+        ${abierto ? `<div class="hilo">${hilo}</div>` : ""}
+      </div>`;
+    }).join("")}</div>`;
+
+    v.innerHTML = `<div class="dos ancho-der"><section class="panel panel-pad">${izq}</section><section class="panel panel-pad">${der}</section></div>`;
+    v.onclick = e => {
+      let b;
+      if ((b = cerca(e, "[data-tema]"))) st.prob = nuevoProb(2, b.dataset.tema);
+      else if ((b = cerca(e, "[data-sub]"))) { p.sub = b.dataset.sub; p.paso = 3; p.cuando = null; }
+      else if ((b = cerca(e, "[data-paso]"))) p.paso = +b.dataset.paso;
+      else if ((b = cerca(e, "[data-cuando]"))) p.cuando = b.dataset.cuando;
+      else if (cerca(e, "#enviar-rep")) {
+        p.folio = "TKT-0" + (880 + st.tickets.length * 7); p.paso = 4;
+        st.tickets.unshift({ folio: p.folio, t: p.sub, fecha: fmt(HOY, { day: "numeric", month: "short" }).replace(".", ""), estado: "espera", resp: [] });
+        st.ticketAbierto = p.folio;
+      }
+      else if (cerca(e, "#otro-rep")) st.prob = nuevoProb();
+      else if ((b = cerca(e, "[data-ticket]"))) st.ticketAbierto = st.ticketAbierto === b.dataset.ticket ? null : b.dataset.ticket;
+      else return;
+      pProblema(v);
+    };
+  }
+
+  // ---- Comunicados ----
+  const BANDERAS = ["#F5821F", "#FAA519", "#BED62F", "#FFFFFF", "#D6D8D1", "#F5821F", "#FAA519"]
+    .map((c, i) => `<path d="M${8 + i * 28} ${[16, 20, 23, 24, 23, 20, 16][i]}h22v22l-11 7-11-7z" fill="${c}"/>`).join("");
+  const ARTE = {
+    posada: `<svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice"><rect width="200" height="120" fill="#006283"/><path d="M-10 12 Q100 32 210 12" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/>${BANDERAS}<g transform="translate(100 86)"><polygon points="0,-28 8,-9 28,-9 12,4 18,25 0,13 -18,25 -12,4 -28,-9 -8,-9" fill="#FAA519"/><circle r="8" fill="#F5821F"/></g></svg>`,
+    aguinaldo: `<svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice"><rect width="200" height="120" fill="#113B5E"/><g fill="#fff" opacity=".18"><circle cx="30" cy="25" r="14"/><circle cx="172" cy="96" r="20"/><circle cx="160" cy="20" r="8"/></g><rect x="68" y="50" width="64" height="50" rx="8" fill="#fff"/><rect x="62" y="40" width="76" height="16" rx="6" fill="#E9F8EF"/><rect x="94" y="40" width="12" height="60" fill="#D64541"/><path d="M100 40c-8-14-26-12-20-2 3 4 12 3 20 2zM100 40c8-14 26-12 20-2-3 4-12 3-20 2z" fill="#D64541"/></svg>`,
+    vacuna: `<svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice"><rect width="200" height="120" fill="#DDEEF2"/><path d="M100 14l34 12v26c0 24-16 40-34 50-18-10-34-26-34-50V26z" fill="#113B5E"/><path d="M100 40v34M83 57h34" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg>`,
+    comedor: `<svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice"><rect width="200" height="120" fill="#FAA519"/><circle cx="100" cy="62" r="38" fill="#fff"/><circle cx="100" cy="62" r="24" fill="#FFE3CF"/><circle cx="92" cy="56" r="7" fill="#2E9D5B"/><circle cx="108" cy="67" r="8" fill="#D64541"/><rect x="40" y="28" width="7" height="70" rx="3.5" fill="#fff"/><path d="M36 26v16a7.5 7.5 0 0 0 15 0V26" fill="none" stroke="#fff" stroke-width="4"/><ellipse cx="160" cy="40" rx="8" ry="13" fill="#fff"/><rect x="156.5" y="48" width="7" height="50" rx="3.5" fill="#fff"/></svg>`,
+  };
+  const COMUNICADOS = [
+    { id: "posada", t: "Posada navideña", f: "Viernes 18 de diciembre",
+      txt: ["Te esperamos en el comedor de 14:30 a 17:00, entre el primer y el segundo turno.", "Habrá comida, rifa y piñatas. Puedes llevar a tu familia: pide tus pases en RH antes del 11 de diciembre."] },
+    { id: "aguinaldo", t: "Fecha de pago del aguinaldo", f: "Se deposita el 18 de diciembre",
+      txt: ["Tu aguinaldo se deposita el viernes 18 de diciembre, antes del día 20 como marca la ley.", "Son 15 días de salario. Si entraste este año, te toca la parte proporcional a lo que llevas trabajado."] },
+    { id: "vacuna", t: "Vacuna contra la influenza", f: "Del 1 al 5 de diciembre",
+      txt: ["Servicio médico vacuna de 7:00 a 15:00. Es gratis y tarda 5 minutos.", "Trae tu cartilla de vacunación si la tienes. Avísale a tu supervisor antes de ir."] },
+    { id: "comedor", t: "Nuevo menú del comedor", f: "Desde el lunes 30 de noviembre",
+      txt: ["Ahora hay dos platos fuertes al día y siempre una opción sin carne.", "El menú de la semana está en Accesos directos, en Menú del comedor."] },
+  ];
+  st.leidos = new Set(["comedor"]); st.comAbierto = null;
+
+  function pComunicados(v) {
+    const c = COMUNICADOS.find(x => x.id === st.comAbierto);
+    if (c) {
+      st.leidos.add(c.id);
+      v.innerHTML = `<section class="panel comunicado-det">
+        <div class="arte">${ARTE[c.id]}</div>
+        <div class="det-txt"><span class="fecha-chip">${c.f}</span><h2>${c.t}</h2>${c.txt.map(p => `<p>${p}</p>`).join("")}
+          <button class="boton claro chico" id="com-volver">${ico("i-izq")}Ver todos los comunicados</button></div>
+      </section>`;
+    } else {
+      v.innerHTML = `<div class="avisos">${COMUNICADOS.map(x => `
+        <button class="tarjeta" data-com="${x.id}">
+          <div class="arte">${ARTE[x.id]}</div>
+          ${st.leidos.has(x.id) ? "" : '<span class="insignia">Nuevo</span>'}
+          <div class="tarjeta-pie"><b>${x.t}</b><span>${x.f}</span></div>
+        </button>`).join("")}</div>`;
+    }
+    v.onclick = e => {
+      const b = cerca(e, "[data-com]");
+      if (b) st.comAbierto = b.dataset.com;
+      else if (cerca(e, "#com-volver")) st.comAbierto = null;
+      else return;
+      pComunicados(v); v.scrollTop = 0;
+    };
+  }
+
+  // ---- Mis datos ----
+  function pDatos(v) {
+    const datos = [
+      ["Número de empleado", "004218"], ["Área", "Línea 3, Ensamble"], ["Turno", "Matutino, de 6:00 a 14:00"],
+      ["Jefe directo", "Ramiro Soto"], ["Fecha de ingreso", "14 de marzo de 2023"],
+      ["Número de seguro social", "•••• •• 4471"], ["Cuenta para tu pago", "Banorte, termina en 4821"],
+    ];
+    v.innerHTML = `<div class="dos perfil-dos">
+      <section class="panel perfil">
+        <span class="foto foto-grande"><svg viewBox="0 0 100 100"><use href="#persona"/></svg></span>
+        <h2>María Guadalupe Hernández Ruiz</h2>
+        <p>Operadora de ensamble</p>
+        <span class="fecha-chip">3 años y 8 meses en la empresa</span>
+      </section>
+      <section class="panel panel-pad">
+        <h2 class="sub">Así te tiene registrada RH</h2>
+        <div class="renglones">${datos.map(([a, b]) => `<div class="renglon"><span>${a}</span><b class="num">${b}</b></div>`).join("")}</div>
+        <p class="nota-saldo">Por seguridad, los números completos solo los ve RH.</p>
+        <button class="boton claro" data-ir="problema" data-cat="datos">${ico("i-chat")}Algo está mal en mis datos</button>
+      </section>
+    </div>`;
+    v.onclick = null;
+  }
+
+  // ---- Mis solicitudes ----
+  function pSolicitudes(v) {
+    const items = [];
+    if (st.enviada) items.push({ ic: "i-sol", t: `Vacaciones, ${rangoCorto(st.enviada.ini, st.enviada.fin)}`, s: `${st.enviada.dias} ${st.enviada.dias === 1 ? "día" : "días"}. Folio ${st.enviada.folio}`, e: "espera", ir: "vacaciones" });
+    st.cartas.forEach(c => items.push({ ic: "i-doc", t: c.n, s: `Folio ${c.folio}. Recógela en RH mañana`, e: "espera", ir: "cartas" }));
+    st.tickets.forEach(t => items.push({ ic: "i-chat", t: t.t, s: t.resp.length ? `${t.folio}. RH ya te contestó` : `${t.folio}. Enviado el ${t.fecha}`, e: t.estado, ir: "problema" }));
+    items.push({ ic: "i-sol", t: "Vacaciones, 8–11 sep", s: "4 días. Folio VAC-1187", e: "ok", ir: "vacaciones" });
+    items.push({ ic: "i-doc", t: "Carta de trabajo", s: "Impresa el 2 de octubre", e: "ok", ir: "cartas" });
+    const pend = items.filter(i => i.e === "espera").length;
+    v.innerHTML = `<section class="panel panel-pad solicitudes">
+      <div class="resumen-fila"><div><b class="num">${pend}</b>en revisión</div><div><b class="num">${items.length - pend}</b>terminadas</div></div>
+      <div class="filas">${items.map(i => `
+        <button class="fila" data-ir="${i.ir}">
+          <span class="ic">${ico(i.ic)}</span>
+          <span class="txt"><b>${i.t}</b><span>${i.s}</span></span>
+          <span class="estado ${i.e}">${i.e === "ok" ? "Lista" : "En revisión"}</span>
+        </button>`).join("")}</div>
+    </section>`;
+    v.onclick = null;
+  }
+
+  // ---- Accesos directos ----
+  const ACCESOS = [
+    ["i-plato", "Menú del comedor", "Lo que hay hoy y toda la semana"],
+    ["i-libro", "Reglamento interior", "Léelo cuando quieras"],
+    ["i-birrete", "Mis cursos", "Capacitación y constancias DC-3"],
+    ["i-maleta", "Vacantes internas", "Puestos abiertos en la planta"],
+    ["i-moneda", "Caja de ahorro", "Tu saldo y tus préstamos"],
+    ["i-buzon", "Buzón de sugerencias", "Se manda sin tu nombre"],
+  ];
+  function pAccesos(v) {
+    v.innerHTML = `<div class="opciones accesos">${ACCESOS.map(([i, n, d]) => `
+      <button class="opcion" data-acceso="${n}"><span class="ic">${ico(i)}</span><b>${n}</b><span>${d}</span></button>`).join("")}</div>`;
+    v.onclick = e => { const b = cerca(e, "[data-acceso]"); if (b) aviso(`Aquí se abre "${b.dataset.acceso}" en la intranet de la planta.`); };
+  }
+
+  // ---- Ayuda ----
+  const FAQ = [
+    ["Se me olvidó mi PIN", `<p>Ve a RH con tu gafete. Te dan un PIN nuevo en el momento y lo cambias la primera vez que entres.</p>`],
+    ["¿Qué días me pagan?", `<p>El 15 y el último día de cada mes. Si cae en fin de semana o día festivo, te pagan el día hábil anterior.</p>`],
+    ["¿Cuántos días de vacaciones me tocan?", `<p>Depende de tus años en la empresa, según la Ley Federal del Trabajo:</p>
+      <div class="tabla-lft num">${[["1 año", 12], ["2 años", 14], ["3 años", 16], ["4 años", 18], ["5 años", 20], ["6 a 10 años", 22]].map(([a, d]) => `<span>${a}</span><b>${d} días</b>`).join("")}</div>
+      <button class="boton chico" data-ir="vacaciones">${ico("i-sol")}Pedir vacaciones</button>`],
+    ["¿Quién puede ver mis datos?", `<p>Solo tú y el personal de RH. Si no tocas la pantalla en 2 minutos, tu sesión se cierra sola y se borra lo que había en pantalla.</p>`],
+    ["Algo de mi recibo está mal", `<p>Haz un reporte y RH lo revisa con nómina.</p><button class="boton chico" data-ir="problema" data-cat="pago">${ico("i-chat")}Reportar un problema</button>`],
+  ];
+  st.faq = 0;
+  function pAyuda(v) {
+    v.innerHTML = `<div class="dos ancho-der">
+      <section class="panel panel-pad"><h2 class="sub">Preguntas frecuentes</h2>
+        <div class="faq">${FAQ.map(([q, a], i) => `
+          <div class="pregunta ${st.faq === i ? "on" : ""}">
+            <button class="fila" data-faq="${i}" aria-expanded="${st.faq === i}"><span class="txt"><b>${q}</b></span>${ico(st.faq === i ? "i-menos" : "i-signo-mas")}</button>
+            ${st.faq === i ? `<div class="respuesta">${a}</div>` : ""}
+          </div>`).join("")}</div>
+      </section>
+      <section class="panel panel-pad contacto">
+        <span class="ic grande-ic">${ico("i-ayuda")}</span>
+        <h2 class="sub">¿No encontraste lo que buscas?</h2>
+        <p>Ve a la oficina de RH, junto al comedor.</p>
+        <div class="renglones">
+          <div class="renglon"><span>Horario</span><b>Lunes a viernes, 7:00 a 16:00</b></div>
+          <div class="renglon"><span>Extensión</span><b class="num">214</b></div>
+        </div>
+        <button class="boton claro" data-ir="problema">${ico("i-chat")}Mandar un reporte</button>
+      </section>
+    </div>`;
+    v.onclick = e => { const b = cerca(e, "[data-faq]"); if (b) { st.faq = st.faq === +b.dataset.faq ? -1 : +b.dataset.faq; pAyuda(v); } };
+  }
+
+  const PANTALLAS = {
+    recibos: { t: "Mis recibos", s: "Lo que te pagaron cada quincena", pintar: pRecibos, entrar() { st.montos = false; } },
+    cartas: { t: "Cartas y constancias", s: "Elige una y revisa que tus datos estén bien", pintar: pCartas },
+    problema: { t: "Reportar un problema", s: "Cuéntale a RH qué pasó, sin hacer fila", pintar: pProblema, entrar() { if (st.prob.paso === 4) st.prob = nuevoProb(); } },
+    comunicados: { t: "Comunicados", s: "Lo que pasa en la planta", pintar: pComunicados, entrar() { st.comAbierto = null; } },
+    datos: { t: "Mis datos", s: "Tu información en RH", pintar: pDatos },
+    solicitudes: { t: "Mis solicitudes", s: "Todo lo que has pedido y cómo va", pintar: pSolicitudes },
+    accesos: { t: "Accesos directos", s: "Otros sistemas de la planta", pintar: pAccesos },
+    ayuda: { t: "Ayuda", s: "Respuestas rápidas y cómo encontrar a RH", pintar: pAyuda },
+  };
+
   ruta();
 })();
 </script>
+</body>
+</html>
